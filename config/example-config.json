@@ -1,0 +1,12 @@
+{
+    "token-file-location": "config/token.json",
+    "client-id": "example-client-id",
+    "client-secret": "example-client-secret",
+    "scopes": [
+        "https://www.googleapis.com/auth/photoslibrary",
+        "https://www.googleapis.com/auth/photoslibrary.sharing"
+    ],
+    "auth-url": "https://accounts.google.com/o/oauth2/auth",
+    "token-url": "https://oauth2.googleapis.com/token",
+    "redirect-url": "http://127.0.0.1:8080/oauth/callback"
+}
