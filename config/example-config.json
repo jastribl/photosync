@@ -8,5 +8,13 @@
     ],
     "auth-url": "https://accounts.google.com/o/oauth2/auth",
     "token-url": "https://oauth2.googleapis.com/token",
-    "redirect-url": "http://127.0.0.1:8080/oauth/callback"
+    "redirect-url": "http://127.0.0.1:8080/oauth/callback",
+    "free-before-date": "2021-06-01",
+    "picture-path-substrings-to-ignore": [
+        "pictures from others you want to ignore"
+    ],
+    "root-pictures-dir": "/Users/username/Pictures/",
+    "file-names-to-ignore": [
+        ".DS_Store"
+    ]
 }

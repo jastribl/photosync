@@ -3,6 +3,7 @@ package photos
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -71,7 +72,42 @@ func NewClientForUser(cfg *config.Config) (*Client, error) {
 	}, nil
 }
 
-// Get gets?
-func (m *Client) Get(s string) (*http.Response, error) {
-	return m.httpClient.Get(s)
+// GetMediaItems gets media items
+func (m *Client) GetMediaItems(pageToken string) (*MediaItems, error) {
+	pageTokenPart := ""
+	if pageToken != "" {
+		pageTokenPart = fmt.Sprintf("&pageToken=%s", pageToken)
+	}
+	resp, err := m.httpClient.Get(fmt.Sprintf(
+		"https://photoslibrary.googleapis.com/v1/mediaItems?pageSize=100%s",
+		pageTokenPart,
+	))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	d := &MediaItems{}
+	err = json.NewDecoder(resp.Body).Decode(d)
+
+	return d, err
+}
+
+// GetAllMediaItems gets all media items
+func (m *Client) GetAllMediaItems() ([]*MediaItem, error) {
+	var allMediaItems []*MediaItem
+	lastPageToken := ""
+	for {
+		mediaItems, err := m.GetMediaItems(lastPageToken)
+		if err != nil {
+			return nil, err
+		}
+		allMediaItems = append(allMediaItems, mediaItems.MediaItems...)
+		lastPageToken = mediaItems.NextPageToken
+		if lastPageToken == "" {
+			break
+		}
+	}
+
+	return allMediaItems, nil
 }

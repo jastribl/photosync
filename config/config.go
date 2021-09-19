@@ -18,6 +18,13 @@ type Config struct {
 	AuthURL      string   `json:"auth-url"`
 	TokenURL     string   `json:"token-url"`
 	RedirectURL  string   `json:"redirect-url"`
+
+	// Program Config
+	FreeBeforeDate                string          `json:"free-before-date"`
+	RootPicturesDir               string          `json:"root-pictures-dir"`
+	PicturePathSubstringsToIgnore []string        `json:"picture-path-substrings-to-ignore"`
+	FileNamesToIgnoreArray        []string        `json:"file-names-to-ignore"`
+	FileNamesToIgnoreMap          map[string]bool `json:"-"`
 }
 
 var configCache *Config
@@ -36,6 +43,12 @@ func NewConfig() *Config {
 
 		// init channels
 		configCache.TokenDoneSignal = make(chan bool)
+
+		// Data Prepping
+		configCache.FileNamesToIgnoreMap = make(map[string]bool)
+		for _, item := range configCache.FileNamesToIgnoreArray {
+			configCache.FileNamesToIgnoreMap[item] = true
+		}
 	}
 	return configCache
 }
