@@ -1,48 +1,15 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
-	"net/url"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
 	"github.com/jastribl/photosync/config"
 	"github.com/jastribl/photosync/photos"
-	"golang.org/x/oauth2"
 )
-
-var (
-	oauthConfig *oauth2.Config
-	gCfg        *config.Config
-)
-
-func callbackHandler(w http.ResponseWriter, r *http.Request) {
-	queryParts, _ := url.ParseQuery(r.URL.RawQuery)
-
-	// Use the authorization code that is pushed to the redirect
-	// URL.
-	code := queryParts["code"][0]
-
-	// Exchange will do the handshake to retrieve the initial access token.
-	tok, err := oauthConfig.Exchange(context.Background(), code)
-	if err != nil {
-		log.Fatal(err)
-	}
-	photos.SaveToken(gCfg, tok)
-
-	// show succes page
-	msg := "<p><strong>Success!</strong></p>"
-	msg = msg + "<p>You are authenticated and can now return to the CLI.</p>"
-	fmt.Fprintf(w, msg)
-
-	gCfg.TokenDoneSignal <- true
-}
 
 func main() {
 	// Setup logging
@@ -50,37 +17,20 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	// Setup configs
-	gCfg = config.NewConfig()
-	oauthConfig = photos.GetAuthConfig(gCfg)
+	cfg := config.NewConfig()
 
-	url := oauthConfig.AuthCodeURL("state", oauth2.AccessTypeOffline)
-
-	var err error
-	var client *photos.Client
-	if !photos.HasToken(gCfg) {
-		err := exec.Command("open", url).Start()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		http.HandleFunc("/oauth/callback", callbackHandler)
-		go func() {
-			log.Fatal(http.ListenAndServe("localhost:8080", nil))
-		}()
-
-		done := <-gCfg.TokenDoneSignal
-		if !done {
-			log.Fatal("Error in getting token")
-		}
-	}
-
-	client, err = photos.NewClientForUser(gCfg)
+	// Get a new Photos Client
+	client, err := photos.NewClientForUser(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	rootPicturesDir := gCfg.RootPicturesDir
-	allFileNames, err := getAllFileNamesInDir(rootPicturesDir, gCfg.PicturePathSubstringsToIgnore)
+	rootPicturesDir := cfg.RootPicturesDir
+	allFileNames, err := getAllFileNamesInDir(
+		cfg,
+		rootPicturesDir,
+		cfg.PicturePathSubstringsToIgnore,
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -90,7 +40,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	freeBefore, _ := time.Parse("2006-01-02", gCfg.FreeBeforeDate)
+	freeBefore, _ := time.Parse("2006-01-02", cfg.FreeBeforeDate)
 
 	for _, mediaItem := range mediaItmes {
 		filename := mediaItem.Filename
@@ -110,7 +60,7 @@ func main() {
 	}
 }
 
-func getAllFileNamesInDir(rootDir string, folderSubstringsToIgnore []string) (
+func getAllFileNamesInDir(cfg *config.Config, rootDir string, folderSubstringsToIgnore []string) (
 	map[string]bool,
 	error,
 ) {
@@ -130,7 +80,7 @@ func getAllFileNamesInDir(rootDir string, folderSubstringsToIgnore []string) (
 				if !strContainsAnySubstrings(file.Name(), folderSubstringsToIgnore) {
 					queue = append(queue, nextItem+file.Name()+"/")
 				}
-			} else if _, found := gCfg.FileNamesToIgnoreMap[file.Name()]; found {
+			} else if _, found := cfg.FileNamesToIgnoreMap[file.Name()]; found {
 				continue
 			} else if file.Name() == ".DS_Store" {
 				log.Fatal("wat")

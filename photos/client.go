@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	urlApi "net/url"
 	"os"
+	"os/exec"
 
 	"github.com/jastribl/photosync/config"
 	"golang.org/x/oauth2"
@@ -57,11 +59,51 @@ func GetAuthConfig(cfg *config.Config) *oauth2.Config {
 		},
 		RedirectURL: cfg.RedirectURL,
 	}
-
 }
 
 // NewClientForUser gets a new client for a user using the user token
 func NewClientForUser(cfg *config.Config) (*Client, error) {
+	oauthConfig := GetAuthConfig(cfg)
+
+	url := oauthConfig.AuthCodeURL("state", oauth2.AccessTypeOffline)
+
+	if !HasToken(cfg) {
+		err := exec.Command("open", url).Start()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		http.HandleFunc("/oauth/callback", func(w http.ResponseWriter, r *http.Request) {
+			queryParts, _ := urlApi.ParseQuery(r.URL.RawQuery)
+
+			// Use the authorization code that is pushed to the redirect
+			// URL.
+			code := queryParts["code"][0]
+
+			// Exchange will do the handshake to retrieve the initial access token.
+			tok, err := oauthConfig.Exchange(context.Background(), code)
+			if err != nil {
+				log.Fatal(err)
+			}
+			SaveToken(cfg, tok)
+
+			// show succes page
+			msg := "<p><strong>Success!</strong></p>"
+			msg = msg + "<p>You are authenticated and can now return to the CLI.</p>"
+			fmt.Fprint(w, msg)
+
+			cfg.TokenDoneSignal <- true
+		})
+		go func() {
+			log.Fatal(http.ListenAndServe("localhost:8080", nil))
+		}()
+
+		done := <-cfg.TokenDoneSignal
+		if !done {
+			log.Fatal("Error in getting token")
+		}
+	}
+
 	tok, err := tokenFromFile(cfg)
 	if err != nil {
 		return nil, err
