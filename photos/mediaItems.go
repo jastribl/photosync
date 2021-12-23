@@ -107,6 +107,13 @@ func (m *Client) getMediaItems(pageToken string) (*MediaItems, error) {
 
 	d := &MediaItems{}
 	err = json.NewDecoder(resp.Body).Decode(d)
+	if err != nil {
+		return nil, err
+	}
+	if d.Error != nil {
+		log.Fatal("got an error fetching media items: " + d.Error.Message + " " + d.Error.Status)
+	}
+	log.Printf("Got %d media items\n", len(d.MediaItems))
 
 	return d, err
 }
@@ -141,6 +148,12 @@ func (m *Client) searchMediaItems(albumID, pageToken string) (*MediaItems, error
 
 	d := &MediaItems{}
 	err = json.NewDecoder(resp.Body).Decode(d)
+	if err != nil {
+		return nil, err
+	}
+	if d.Error != nil {
+		log.Fatal("got an error fetching media items: " + d.Error.Message + " " + d.Error.Status)
+	}
 
 	return d, err
 }

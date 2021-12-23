@@ -61,8 +61,9 @@ type MediaItem struct {
 
 // MediaItems is the structure to hold media items
 type MediaItems struct {
-	MediaItems    []*MediaItem `json:"mediaItems"`
-	NextPageToken string       `json:"nextPageToken"`
+	MediaItems    []*MediaItem   `json:"mediaItems"`
+	NextPageToken string         `json:"nextPageToken"`
+	Error         *ErrorResponse `json:"error"`
 }
 
 type SharedAlbumOptions struct {
