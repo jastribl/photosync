@@ -28,6 +28,10 @@ func main() {
 	args := os.Args[1:]
 	rootPicturesDir := args[0]
 	albumName := args[1]
+	createLabels := false
+	if len(args) > 2 && args[2] == "--create" {
+		createLabels = true
+	}
 	fmt.Println("Running for the following input")
 	fmt.Println("Root picture dir: '" + rootPicturesDir + "'")
 	fmt.Println("Album Name: '" + albumName + "'")
@@ -50,8 +54,9 @@ func main() {
 	folderToIngoreContainsLowercase := []string{
 		"Photos from Others",
 		"Pictures from Others",
-		"Photos from Michael",
-		"/Wendy",
+		"2018-03-09 - Club",
+		"Pictures from Dad",
+		"Dads Pictures",
 	}
 
 	ignoreFolderForLabeling := func(folderName string) bool {
@@ -118,6 +123,9 @@ func main() {
 					sleepSeconds = 10
 				}
 				fmt.Printf("Adding '%s' at the beginning of the album\n", labelText)
+				if !createLabels {
+					break
+				}
 				response, err := client.AddTextEnrichmentToAlbum(album.ID, "", labelText)
 				utils.FatalError(err)
 				if response.Error == nil || response.Error.Status != "RESOURCE_EXHAUSTED" {
@@ -155,6 +163,9 @@ func main() {
 						lastMediaItemOfNextFolder.Filename,
 						nextFolderPath[len(rootPicturesDir):len(nextFolderPath)-1],
 					)
+					if !createLabels {
+						break
+					}
 					response, err := client.AddTextEnrichmentToAlbum(album.ID, afterMediaID, labelText)
 					utils.FatalError(err)
 					if response.Error == nil {
