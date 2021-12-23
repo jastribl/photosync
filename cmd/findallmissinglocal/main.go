@@ -35,31 +35,45 @@ func main() {
 		[]string{},
 		map[string]bool{},
 	)
+	allLocalFilesLowerCaseMap := map[string]int{}
+	for fileName, count := range allLocalFileNamesMap {
+		allLocalFilesLowerCaseMap[strings.ToLower(fileName)] = count
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	allPhotosMediaItems, err := client.GetAllMediaItems()
+	allPhotosMediaItems, err := client.GetAllMediaItems(true)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	fileNameReplacements := []struct{ a, b string }{
+		{".heic", ".jpg"},
+		{".jpg", ".heic"},
 	}
 
 	for _, mediaItem := range allPhotosMediaItems {
-		if _, ok := allLocalFileNamesMap[mediaItem.Filename]; ok {
+		lowerCaseFileName := strings.ToLower(mediaItem.Filename)
+		if _, ok := allLocalFilesLowerCaseMap[mediaItem.Filename]; ok {
 			continue
 		}
-		if _, ok := allLocalFileNamesMap[strings.ReplaceAll(mediaItem.Filename, ".HEIC", ".jpg")]; ok {
+		found := false
+		for _, pair := range fileNameReplacements {
+			if _, ok := allLocalFilesLowerCaseMap[strings.ReplaceAll(lowerCaseFileName, pair.a, pair.b)]; ok {
+				found = true
+				break
+			}
+		}
+		if found {
 			continue
 		}
-		if _, ok := allLocalFileNamesMap[strings.ReplaceAll(mediaItem.Filename, ".HEIC", ".jpg")]; ok {
-			continue
-		}
-		if _, ok := allLocalFileNamesMap[strings.ReplaceAll(mediaItem.Filename, ".HEIC", ".heic")]; ok {
-			continue
-		}
-		if _, ok := allLocalFileNamesMap[strings.ReplaceAll(mediaItem.Filename, ".heic", ".jpg")]; ok {
-			continue
-		}
-		fmt.Printf("Missing locally: (%s): %s\n", mediaItem.Filename, mediaItem.ProductULR)
+
+		fmt.Printf(
+			"Missing locally: (%s) (%s): %s\n",
+			mediaItem.MediaMetadata.CreationTime,
+			lowerCaseFileName,
+			mediaItem.ProductULR,
+		)
 	}
 }

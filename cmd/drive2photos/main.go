@@ -97,6 +97,7 @@ func main() {
 		for _, pair := range fileNameReplacements {
 			if _, ok := allDriveLowercaseFilenamesMap[strings.ReplaceAll(fileNameLowerCase, pair.a, pair.b)]; ok {
 				found = true
+				break
 			}
 		}
 
