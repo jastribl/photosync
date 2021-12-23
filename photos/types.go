@@ -64,3 +64,33 @@ type MediaItems struct {
 	MediaItems    []*MediaItem `json:"mediaItems"`
 	NextPageToken string       `json:"nextPageToken"`
 }
+
+type SharedAlbumOptions struct {
+	IsCollaborative bool `json:"isCollaborative"`
+	IsCommentable   bool `json:"isCommentable"`
+}
+
+type ShareInfo struct {
+	SharedAlbumOptions SharedAlbumOptions `json:"sharedAlbumOptions"`
+	ShareableUrl       string             `json:"shareableUrl"`
+	ShareToken         string             `json:"shareToken"`
+	IsJoined           bool               `json:"isJoined"`
+	IsOwned            bool               `json:"isOwned"`
+	IsJoinable         bool               `json:"isJoinable"`
+}
+
+type Album struct {
+	ID                    string    `json:"id"`
+	Title                 string    `json:"title"`
+	ProductULR            string    `json:"productUrl"`
+	IsWritable            bool      `json:"isWriteable"`
+	ShareInfo             ShareInfo `json:"shareInfo"`
+	MediaItemsCount       string    `json:"mediaItemsCount"`
+	CoverPhotoBaseUrl     string    `json:"coverPhotoBaseUrl"`
+	CoverPhotoMediaItemId string    `json:"coverPhotoMediaItemId"`
+}
+
+type Albums struct {
+	Albums        []*Album `json:"albums"`
+	NextPageToken string   `json:"nextPageToken"`
+}
