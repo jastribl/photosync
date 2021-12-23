@@ -9,6 +9,7 @@ import (
 	"github.com/jastribl/photosync/config"
 	"github.com/jastribl/photosync/files"
 	"github.com/jastribl/photosync/photos"
+	"github.com/jastribl/photosync/utils"
 )
 
 func main() {
@@ -21,9 +22,7 @@ func main() {
 
 	// Get a new Photos Client
 	client, err := photos.NewClientForUser(cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
+	utils.FatalError(err)
 
 	args := os.Args[1:]
 	rootPicturesDir := args[0]
@@ -32,6 +31,7 @@ func main() {
 	fmt.Println("Root picture dir: '" + rootPicturesDir + "'")
 	fmt.Println("Album Name: '" + albumName + "'")
 
+	log.Println("Getting all drive filenames")
 	allDriveFileNames, err := files.GetAllFileNamesInDirAsMap(
 		rootPicturesDir,
 		[]string{},
@@ -41,46 +41,27 @@ func main() {
 	for fileName, numberOfThatFile := range allDriveFileNames {
 		allDriveLowercaseFilenamesMap[strings.ToLower(fileName)] = numberOfThatFile
 	}
-	if err != nil {
-		log.Fatal(err)
-	}
+	utils.FatalError(err)
 
+	log.Println("Getting album")
 	album, err := client.GetAlbumWithTitleContains(albumName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	utils.FatalError(err)
 	if album == nil {
 		log.Fatal("Album not found with name '" + albumName + "'")
 	}
 
+	log.Println("Getting album media items")
 	albumMediaItems, err := client.GetAllMediaItemsForAlbum(album)
-	if err != nil {
-		log.Fatal(err)
-	}
+	utils.FatalError(err)
+	allAlbumFileNamesLowerCaseToMediaItems := mediaItemsToLowercaseFilenameMap(albumMediaItems)
 
+	log.Println("Getting all media items")
 	allMediaItems, err := client.GetAllMediaItems(true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	allMediaItemLowerCaseFilenamesToMediaItems := map[string][]*photos.MediaItem{}
-	for _, item := range allMediaItems {
-		lowerFilename := strings.ToLower(item.Filename)
-		if list, ok := allMediaItemLowerCaseFilenamesToMediaItems[lowerFilename]; ok {
-			log.Printf("found multiple media items for %s\n", lowerFilename)
-			allMediaItemLowerCaseFilenamesToMediaItems[lowerFilename] = append(list, item)
-		} else {
-			allMediaItemLowerCaseFilenamesToMediaItems[lowerFilename] = []*photos.MediaItem{item}
-		}
-	}
-
-	allAlbumFileNamesLowerCaseToMediaItems := map[string]*photos.MediaItem{}
-	for _, item := range albumMediaItems {
-		allAlbumFileNamesLowerCaseToMediaItems[strings.ToLower(item.Filename)] = item
-	}
+	utils.FatalError(err)
+	allMediaItemLowerCaseFilenamesToMediaItems := mediaItemsToLowercaseFilenameMap(allMediaItems)
 
 	numExtra := 0
-	for fileNameLowerCase, mediaItem := range allAlbumFileNamesLowerCaseToMediaItems {
+	for fileNameLowerCase, mediaItems := range allAlbumFileNamesLowerCaseToMediaItems {
 		fileNameLowerCase = strings.ToLower(fileNameLowerCase)
 
 		// Check if filename is in drive folder already
@@ -102,12 +83,14 @@ func main() {
 		}
 
 		if !found {
-			fmt.Printf(
-				"Photos extra file (date: %s): %s - %s\n",
-				mediaItem.MediaMetadata.CreationTime,
-				fileNameLowerCase,
-				mediaItem.ProductULR,
-			)
+			for _, mediaItem := range mediaItems {
+				fmt.Printf(
+					"Photos extra file (date: %s): %s - %s\n",
+					mediaItem.MediaMetadata.CreationTime,
+					fileNameLowerCase,
+					mediaItem.ProductULR,
+				)
+			}
 			numExtra += 1
 		}
 	}
@@ -144,4 +127,19 @@ func main() {
 
 	log.Printf("Num Extra: %d\n", numExtra)
 	log.Printf("Num Missing: %d\n", numMissing)
+}
+
+func mediaItemsToLowercaseFilenameMap(mediaItems []*photos.MediaItem) map[string][]*photos.MediaItem {
+	lowerCaseFilenamesToMediaItems := map[string][]*photos.MediaItem{}
+	for _, item := range mediaItems {
+		lowerFilename := strings.ToLower(item.Filename)
+		if list, ok := lowerCaseFilenamesToMediaItems[lowerFilename]; ok {
+			log.Printf("found multiple media items for %s\n", lowerFilename)
+			lowerCaseFilenamesToMediaItems[lowerFilename] = append(list, item)
+		} else {
+			lowerCaseFilenamesToMediaItems[lowerFilename] = []*photos.MediaItem{item}
+		}
+	}
+
+	return lowerCaseFilenamesToMediaItems
 }
