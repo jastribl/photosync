@@ -9,7 +9,7 @@ import (
 
 func GetAllFileNamesInDir(
 	rootDir string,
-	folderIgnoreRegexs []string,
+	folderDenyRegexs, folderAllowRegexs []string,
 	fileNamesToIgnoreMap map[string]bool,
 ) ([]string, error) {
 	toReturn := []string{}
@@ -25,7 +25,7 @@ func GetAllFileNamesInDir(
 		}
 		for _, file := range files {
 			if file.IsDir() {
-				if !StrContainsAnySubstrings(file.Name(), folderIgnoreRegexs) {
+				if !StrMatchesAnyAndNotAny(file.Name(), folderDenyRegexs, folderAllowRegexs) {
 					queue = append(queue, nextItem+file.Name()+"/")
 				} else {
 					log.Println("skipping dir: " + file.Name())
@@ -43,11 +43,17 @@ func GetAllFileNamesInDir(
 	return toReturn, nil
 }
 
-func GetAllFileNamesInDirAsMap(rootDir string, folderSubstringsToIgnore []string, fileNamesToIgnoreMap map[string]bool) (
-	map[string]int,
-	error,
-) {
-	allDriveFileNamesArr, err := GetAllFileNamesInDir(rootDir, folderSubstringsToIgnore, fileNamesToIgnoreMap)
+func GetAllFileNamesInDirAsMap(
+	rootDir string,
+	folderDenyRegexs, folderAllowRegexs []string,
+	fileNamesToIgnoreMap map[string]bool,
+) (map[string]int, error) {
+	allDriveFileNamesArr, err := GetAllFileNamesInDir(
+		rootDir,
+		folderDenyRegexs,
+		folderAllowRegexs,
+		fileNamesToIgnoreMap,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -62,10 +68,18 @@ func GetAllFileNamesInDirAsMap(rootDir string, folderSubstringsToIgnore []string
 	return toReturn, nil
 }
 
-func StrContainsAnySubstrings(s string, regexs []string) bool {
-	for _, regex := range regexs {
-		if match, err := regexp.MatchString(regex, s); err == nil && match {
-			return true
+func StrMatchesAnyAndNotAny(s string, denyRegexs, allowRegexs []string) bool {
+	for _, denyRegex := range denyRegexs {
+		if match, err := regexp.MatchString(denyRegex, s); err == nil && match {
+			denyRuling := true
+			for _, allowRegex := range allowRegexs {
+				if match, err := regexp.MatchString(allowRegex, s); err == nil && match {
+					denyRuling = false
+				}
+			}
+			if denyRuling {
+				return true
+			}
 		}
 	}
 	return false
