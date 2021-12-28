@@ -4,13 +4,14 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
+	"regexp"
 )
 
-func GetAllFileNamesInDir(rootDir string, folderSubstringsToIgnore []string, fileNamesToIgnoreMap map[string]bool) (
-	[]string,
-	error,
-) {
+func GetAllFileNamesInDir(
+	rootDir string,
+	folderIgnoreRegexs []string,
+	fileNamesToIgnoreMap map[string]bool,
+) ([]string, error) {
 	toReturn := []string{}
 
 	queue := []string{rootDir}
@@ -24,8 +25,10 @@ func GetAllFileNamesInDir(rootDir string, folderSubstringsToIgnore []string, fil
 		}
 		for _, file := range files {
 			if file.IsDir() {
-				if !StrContainsAnySubstrings(file.Name(), folderSubstringsToIgnore) {
+				if !StrContainsAnySubstrings(file.Name(), folderIgnoreRegexs) {
 					queue = append(queue, nextItem+file.Name()+"/")
+				} else {
+					log.Println("skipping dir: " + file.Name())
 				}
 			} else if _, found := fileNamesToIgnoreMap[file.Name()]; found {
 				continue
@@ -59,10 +62,9 @@ func GetAllFileNamesInDirAsMap(rootDir string, folderSubstringsToIgnore []string
 	return toReturn, nil
 }
 
-func StrContainsAnySubstrings(s string, anySubstrings []string) bool {
-	s = strings.ToLower(s)
-	for _, test := range anySubstrings {
-		if strings.Contains(s, test) {
+func StrContainsAnySubstrings(s string, regexs []string) bool {
+	for _, regex := range regexs {
+		if match, err := regexp.MatchString(regex, s); err == nil && match {
 			return true
 		}
 	}

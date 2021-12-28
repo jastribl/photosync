@@ -34,7 +34,11 @@ func main() {
 	log.Println("Getting all drive filenames")
 	allDriveFileNames, err := files.GetAllFileNamesInDirAsMap(
 		rootPicturesDir,
-		[]string{},
+		[]string{
+			".*[pP]ictures [fF]rom .*$",
+			".*[pP]hotos [fF]rom .*$",
+			"^Wendy$",
+		},
 		map[string]bool{},
 	)
 	allDriveLowercaseFilenamesMap := map[string]int{}
@@ -83,10 +87,11 @@ func main() {
 		}
 
 		if !found {
-			for _, mediaItem := range mediaItems {
+			for i, mediaItem := range mediaItems {
 				fmt.Printf(
-					"Photos extra file (date: %s): %s - %s\n",
+					"Photos extra file (date: %s) (%d): %s - %s\n",
 					mediaItem.MediaMetadata.CreationTime,
+					i,
 					fileNameLowerCase,
 					mediaItem.ProductULR,
 				)
@@ -134,7 +139,6 @@ func mediaItemsToLowercaseFilenameMap(mediaItems []*photos.MediaItem) map[string
 	for _, item := range mediaItems {
 		lowerFilename := strings.ToLower(item.Filename)
 		if list, ok := lowerCaseFilenamesToMediaItems[lowerFilename]; ok {
-			log.Printf("found multiple media items for %s\n", lowerFilename)
 			lowerCaseFilenamesToMediaItems[lowerFilename] = append(list, item)
 		} else {
 			lowerCaseFilenamesToMediaItems[lowerFilename] = []*photos.MediaItem{item}
