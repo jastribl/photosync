@@ -9,7 +9,7 @@ import (
 
 func GetAllFileNamesInDir(
 	rootDir string,
-	folderDenyRegexs, folderAllowRegexs []string,
+	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
 	fileNamesToIgnoreMap map[string]bool,
 ) ([]string, error) {
 	toReturn := []string{}
@@ -45,7 +45,7 @@ func GetAllFileNamesInDir(
 
 func GetAllFileNamesInDirAsMap(
 	rootDir string,
-	folderDenyRegexs, folderAllowRegexs []string,
+	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
 	fileNamesToIgnoreMap map[string]bool,
 ) (map[string]int, error) {
 	allDriveFileNamesArr, err := GetAllFileNamesInDir(
@@ -68,13 +68,14 @@ func GetAllFileNamesInDirAsMap(
 	return toReturn, nil
 }
 
-func StrMatchesAnyAndNotAny(s string, denyRegexs, allowRegexs []string) bool {
+func StrMatchesAnyAndNotAny(s string, denyRegexs, allowRegexs []*regexp.Regexp) bool {
 	for _, denyRegex := range denyRegexs {
-		if match, err := regexp.MatchString(denyRegex, s); err == nil && match {
+		if denyRegex.MatchString(s) {
 			denyRuling := true
 			for _, allowRegex := range allowRegexs {
-				if match, err := regexp.MatchString(allowRegex, s); err == nil && match {
+				if allowRegex.MatchString(s) {
 					denyRuling = false
+					break
 				}
 			}
 			if denyRuling {

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -12,6 +13,45 @@ import (
 	"github.com/jastribl/photosync/photos"
 	"github.com/jastribl/photosync/utils"
 )
+
+// folderToIngoreContainsLowercase := []string{
+// 	"Photos from Others",
+// 	"Pictures from Others",
+// 	"2018-03-09 - Club",
+// 	"Pictures from Dad",
+// 	"Dads Pictures",
+// }
+
+// 2021
+var (
+	folderDenyRegexs = [...]*regexp.Regexp{
+		regexp.MustCompile(".*[pP]ictures [fF]rom .*$"),
+		regexp.MustCompile(".*[pP]hotos [fF]rom .*$"),
+		regexp.MustCompile("^Wendy$"),
+	}
+
+	folderAllowRegexs = [...]*regexp.Regexp{
+		regexp.MustCompile("^Photos from Michael$"),
+	}
+)
+
+func ignoreFolderForLabeling(folderName string) bool {
+	for _, denyRegex := range folderDenyRegexs {
+		if denyRegex.MatchString(folderName) {
+			denyRuling := true
+			for _, allowRegex := range folderAllowRegexs {
+				if allowRegex.MatchString(folderName) {
+					denyRuling = false
+					break
+				}
+			}
+			if denyRuling {
+				return true
+			}
+		}
+	}
+	return false
+}
 
 func main() {
 	// Setup logging
@@ -43,69 +83,8 @@ func main() {
 		log.Fatalln("Album not found with name '" + albumName + "'")
 	}
 
-	mediaItems, err := client.GetAllMediaItemsForAlbum(album)
+	listOfFolderInfo, err := getFolderInfo(rootPicturesDir, client, album)
 	utils.FatalError(err)
-
-	lowerCaseFileNameToIndexInAlbum := map[string]int{}
-	for i, item := range mediaItems {
-		lowerCaseFileNameToIndexInAlbum[strings.ToLower(item.Filename)] = i
-	}
-
-	folderToIngoreContainsLowercase := []string{
-		"Photos from Others",
-		"Pictures from Others",
-		"2018-03-09 - Club",
-		"Pictures from Dad",
-		"Dads Pictures",
-	}
-
-	ignoreFolderForLabeling := func(folderName string) bool {
-		for _, ignoreMatch := range folderToIngoreContainsLowercase {
-			if strings.Contains(strings.ToLower(folderName), strings.ToLower(ignoreMatch)) {
-				return true
-			}
-		}
-		return false
-	}
-
-	queue := []string{rootPicturesDir}
-	listOfFolderInfo := []*FolderInfo{}
-	for len(queue) > 0 {
-		currentItem := queue[0]
-		queue = queue[1:]
-
-		files, err := ioutil.ReadDir(currentItem)
-		utils.FatalError(err)
-
-		lowercasePhotoFilenames := []string{}
-		newfrontOfQueue := []string{}
-		for _, file := range files {
-			if file.IsDir() {
-				newfrontOfQueue = append(newfrontOfQueue, currentItem+file.Name()+"/")
-			} else {
-				lowercasePhotoFilenames = append(lowercasePhotoFilenames, strings.ToLower(file.Name()))
-			}
-		}
-		queue = append(newfrontOfQueue, queue...)
-		folderInfo := &FolderInfo{
-			path: currentItem,
-		}
-		highestIndexInAlbum := -1
-		for _, lowerCaseFilename := range lowercasePhotoFilenames {
-			indexInAlbum, foundFile := lowerCaseFileNameToIndexInAlbum[lowerCaseFilename]
-			if foundFile && (highestIndexInAlbum == -1 || indexInAlbum > highestIndexInAlbum) {
-				highestIndexInAlbum = indexInAlbum
-			}
-		}
-		if highestIndexInAlbum != -1 {
-			folderInfo.lastMediaItem = mediaItems[highestIndexInAlbum]
-		}
-		if ignoreFolderForLabeling(folderInfo.path) {
-			log.Printf("Ignoring path: %s\n", folderInfo.path)
-			continue
-		}
-		listOfFolderInfo = append(listOfFolderInfo, folderInfo)
-	}
 
 	for i, folderInfo := range listOfFolderInfo {
 		if folderInfo.path == rootPicturesDir {
@@ -182,6 +161,65 @@ func main() {
 			}
 		}
 	}
+}
+
+func getFolderInfo(
+	rootPicturesDir string,
+	client *photos.Client,
+	album *photos.Album,
+) ([]*FolderInfo, error) {
+	mediaItems, err := client.GetAllMediaItemsForAlbum(album)
+	if err != nil {
+		return nil, err
+	}
+
+	lowerCaseFileNameToIndexInAlbum := map[string]int{}
+	for i, item := range mediaItems {
+		lowerCaseFileNameToIndexInAlbum[strings.ToLower(item.Filename)] = i
+	}
+
+	queue := []string{rootPicturesDir}
+	listOfFolderInfo := []*FolderInfo{}
+	for len(queue) > 0 {
+		currentItem := queue[0]
+		queue = queue[1:]
+
+		files, err := ioutil.ReadDir(currentItem)
+		if err != nil {
+			return nil, err
+		}
+
+		lowercasePhotoFilenames := []string{}
+		newfrontOfQueue := []string{}
+		for _, file := range files {
+			if file.IsDir() {
+				newfrontOfQueue = append(newfrontOfQueue, currentItem+file.Name()+"/")
+			} else {
+				lowercasePhotoFilenames = append(lowercasePhotoFilenames, strings.ToLower(file.Name()))
+			}
+		}
+		queue = append(newfrontOfQueue, queue...)
+		folderInfo := &FolderInfo{
+			path: currentItem,
+		}
+		highestIndexInAlbum := -1
+		for _, lowerCaseFilename := range lowercasePhotoFilenames {
+			indexInAlbum, foundFile := lowerCaseFileNameToIndexInAlbum[lowerCaseFilename]
+			if foundFile && (highestIndexInAlbum == -1 || indexInAlbum > highestIndexInAlbum) {
+				highestIndexInAlbum = indexInAlbum
+			}
+		}
+		if highestIndexInAlbum != -1 {
+			folderInfo.lastMediaItem = mediaItems[highestIndexInAlbum]
+		}
+		if ignoreFolderForLabeling(folderInfo.path) {
+			log.Printf("Ignoring path: %s\n", folderInfo.path)
+			continue
+		}
+		listOfFolderInfo = append(listOfFolderInfo, folderInfo)
+	}
+
+	return listOfFolderInfo, nil
 }
 
 type FolderInfo struct {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/jastribl/photosync/config"
@@ -34,13 +35,14 @@ func main() {
 	log.Println("Getting all drive filenames")
 	allDriveFileNames, err := files.GetAllFileNamesInDirAsMap(
 		rootPicturesDir,
-		[]string{ // folderDenyRegexs
-			".*[pP]ictures [fF]rom .*$",
-			".*[pP]hotos [fF]rom .*$",
-			"^Wendy$",
+		// 2021
+		[]*regexp.Regexp{ // folderDenyRegexs
+			regexp.MustCompile(".*[pP]ictures [fF]rom .*$"),
+			regexp.MustCompile(".*[pP]hotos [fF]rom .*$"),
+			regexp.MustCompile("^Wendy$"),
 		},
-		[]string{ // folderAllowRegexs
-			"^Photos from Michael$",
+		[]*regexp.Regexp{ // folderAllowRegexs
+			regexp.MustCompile("^Photos from Michael$"),
 		},
 		map[string]bool{},
 	)
