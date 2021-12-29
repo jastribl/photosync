@@ -1,9 +1,22 @@
-build_all:
-	go build cmd/cacheitems/main.go;
-	go build cmd/createalbum/main.go;
-	go build cmd/drive2photos/main.go;
-	go build cmd/findallmissinglocal/main.go;
-	go build cmd/findallmissingphotos/main.go;
-	go build cmd/labelphotos/main.go;
-	go build cmd/spacesaver/main.go;
-	rm main;
+cacheitems:
+	go build -o bin/$@ cmd/$@/main.go
+
+createalbum:
+	go build -o bin/$@ cmd/$@/main.go
+
+drive2photos:
+	go build -o bin/$@ cmd/$@/main.go
+
+findallmissinglocal:
+	go build -o bin/$@ cmd/$@/main.go
+
+findallmissingphotos:
+	go build -o bin/$@ cmd/$@/main.go
+
+labelphotos:
+	go build -o bin/$@ cmd/$@/main.go
+
+spacesaver:
+	go build -o bin/$@ cmd/$@/main.go
+
+build_all: cacheitems createalbum drive2photos findallmissinglocal findallmissingphotos labelphotos spacesaver
