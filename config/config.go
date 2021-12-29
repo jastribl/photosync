@@ -2,10 +2,9 @@ package config
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 	"regexp"
-
-	"github.com/jastribl/photosync/utils"
 )
 
 // Config is the struct that holds splitwise config info
@@ -35,7 +34,9 @@ func NewConfig() *Config {
 	if configCache == nil {
 		configCache = new(Config)
 		configFile, err := os.Open("config/config.json")
-		utils.FatalError(err)
+		if err != nil {
+			log.Fatal(err)
+		}
 		defer configFile.Close()
 		jsonParser := json.NewDecoder(configFile)
 		jsonParser.Decode(configCache)

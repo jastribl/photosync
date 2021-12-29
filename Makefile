@@ -1,3 +1,7 @@
+export MAKEFLAGS="-j 8"
+
+build_all: cacheitems createalbum drive2photos findallmissinglocal findallmissingphotos labelphotos spacesaver
+
 cacheitems:
 	go build -o bin/$@ cmd/$@/main.go
 
@@ -18,5 +22,3 @@ labelphotos:
 
 spacesaver:
 	go build -o bin/$@ cmd/$@/main.go
-
-build_all: cacheitems createalbum drive2photos findallmissinglocal findallmissingphotos labelphotos spacesaver

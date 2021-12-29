@@ -22,26 +22,12 @@ func (m *Client) CreateAlbum(title string) (*Album, error) {
 			Title: title,
 		},
 	}
-	jsonStr, err := json.Marshal(createRequest)
+	var album Album
+	err := m.postJson("https://photoslibrary.googleapis.com/v1/albums", createRequest, &album)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := m.httpClient.Post(
-		"https://photoslibrary.googleapis.com/v1/albums",
-		"application/json",
-		bytes.NewBuffer(jsonStr),
-	)
-	if err != nil {
-		return nil, err
-	}
-	var d Album
-	defer resp.Body.Close()
-
-	err = json.NewDecoder(resp.Body).Decode(&d)
-	if err != nil {
-		return nil, err
-	}
-	return &d, nil
+	return &album, nil
 }
 
 // GetAlbums gets albums

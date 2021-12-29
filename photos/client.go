@@ -1,6 +1,7 @@
 package photos
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -112,4 +113,22 @@ func NewClientForUser(cfg *config.Config) (*Client, error) {
 	return &Client{
 		httpClient: GetAuthConfig(cfg).Client(context.Background(), tok),
 	}, nil
+}
+
+func (m *Client) postJson(url string, requestBody interface{}, responseObj interface{}) error {
+	jsonStr, err := json.Marshal(requestBody)
+	if err != nil {
+		return err
+	}
+	resp, err := m.httpClient.Post(
+		url,
+		"application/json",
+		bytes.NewBuffer(jsonStr),
+	)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return json.NewDecoder(resp.Body).Decode(&responseObj)
 }

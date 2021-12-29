@@ -34,4 +34,5 @@ func main() {
 	if album == nil {
 		log.Fatal("Error creating album")
 	}
+	log.Printf("%#v\n", album)
 }
