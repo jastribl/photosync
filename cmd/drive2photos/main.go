@@ -33,7 +33,7 @@ func main() {
 	fmt.Println("Album Name: '" + albumName + "'")
 
 	log.Println("Getting all drive filenames")
-	allDriveFileNames, err := files.GetAllFileNamesInDirAsMap(
+	allDriveFileNames := files.GetAllFileNamesInDirAsMap(
 		rootPicturesDir,
 		// 2021
 		[]*regexp.Regexp{ // folderDenyRegexs
@@ -44,13 +44,11 @@ func main() {
 		[]*regexp.Regexp{ // folderAllowRegexs
 			regexp.MustCompile("^Photos from Michael$"),
 		},
-		map[string]bool{},
 	)
 	allDriveLowercaseFilenamesMap := map[string]int{}
 	for fileName, numberOfThatFile := range allDriveFileNames {
 		allDriveLowercaseFilenamesMap[strings.ToLower(fileName)] = numberOfThatFile
 	}
-	utils.FatalError(err)
 
 	log.Println("Getting album")
 	album, err := client.GetAlbumWithTitleContains(albumName)

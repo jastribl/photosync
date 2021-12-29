@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jastribl/photosync/config"
+	"github.com/jastribl/photosync/files"
 	"github.com/jastribl/photosync/photos"
 	"github.com/jastribl/photosync/utils"
 )
@@ -83,8 +84,7 @@ func main() {
 		log.Fatalln("Album not found with name '" + albumName + "'")
 	}
 
-	listOfFolderInfo, err := getFolderInfo(rootPicturesDir, client, album)
-	utils.FatalError(err)
+	listOfFolderInfo := getTopLevelFolderInfoForLabelling(rootPicturesDir, client, album)
 
 	for i, folderInfo := range listOfFolderInfo {
 		if folderInfo.path == rootPicturesDir {
@@ -115,7 +115,6 @@ func main() {
 				time.Sleep(time.Duration(sleepSeconds) * time.Second)
 			}
 		} else {
-			// firstPicOfNextFolder := ""
 			var lastMediaItemOfNextFolder *photos.MediaItem = nil
 			nextFolderPath := ""
 			for j := i + 1; lastMediaItemOfNextFolder == nil && j < len(listOfFolderInfo); j += 1 {
@@ -163,14 +162,14 @@ func main() {
 	}
 }
 
-func getFolderInfo(
-	rootPicturesDir string,
+func getTopLevelFolderInfoForLabelling(
+	rootDir string,
 	client *photos.Client,
 	album *photos.Album,
-) ([]*FolderInfo, error) {
+) []*FolderInfo {
 	mediaItems, err := client.GetAllMediaItemsForAlbum(album)
 	if err != nil {
-		return nil, err
+		utils.FatalError(err)
 	}
 
 	lowerCaseFileNameToIndexInAlbum := map[string]int{}
@@ -178,48 +177,51 @@ func getFolderInfo(
 		lowerCaseFileNameToIndexInAlbum[strings.ToLower(item.Filename)] = i
 	}
 
-	queue := []string{rootPicturesDir}
+	// Find all top level files and assert they are all topLevelDirs
+	topLevelDirs, err := ioutil.ReadDir(rootDir)
+	if err != nil {
+		utils.FatalError(err)
+	}
 	listOfFolderInfo := []*FolderInfo{}
-	for len(queue) > 0 {
-		currentItem := queue[0]
-		queue = queue[1:]
-
-		files, err := ioutil.ReadDir(currentItem)
-		if err != nil {
-			return nil, err
+	for _, topLevelDir := range topLevelDirs {
+		if topLevelDir.Name() == ".DS_Store" {
+			continue
+		}
+		if !topLevelDir.IsDir() {
+			log.Fatalf("Found non-dir in top level of given root dir - must be  dir: %s", topLevelDir.Name())
 		}
 
-		lowercasePhotoFilenames := []string{}
-		newfrontOfQueue := []string{}
-		for _, file := range files {
-			if file.IsDir() {
-				newfrontOfQueue = append(newfrontOfQueue, currentItem+file.Name()+"/")
-			} else {
-				lowercasePhotoFilenames = append(lowercasePhotoFilenames, strings.ToLower(file.Name()))
-			}
+		fullPathWithRoot := rootDir + topLevelDir.Name() + "/"
+		if ignoreFolderForLabeling(fullPathWithRoot) {
+			log.Printf("Ignoring path 2: %s\n", fullPathWithRoot)
+			continue
 		}
-		queue = append(newfrontOfQueue, queue...)
-		folderInfo := &FolderInfo{
-			path: currentItem,
-		}
+
+		filesNamesInDir := files.GetAllFileNamesInDir(
+			fullPathWithRoot,
+			folderDenyRegexs[:],
+			folderAllowRegexs[:],
+		)
+
 		highestIndexInAlbum := -1
-		for _, lowerCaseFilename := range lowercasePhotoFilenames {
+		for _, filename := range filesNamesInDir {
+			lowerCaseFilename := strings.ToLower(filename)
 			indexInAlbum, foundFile := lowerCaseFileNameToIndexInAlbum[lowerCaseFilename]
 			if foundFile && (highestIndexInAlbum == -1 || indexInAlbum > highestIndexInAlbum) {
 				highestIndexInAlbum = indexInAlbum
 			}
 		}
+
+		folderInfo := &FolderInfo{
+			path: fullPathWithRoot,
+		}
 		if highestIndexInAlbum != -1 {
 			folderInfo.lastMediaItem = mediaItems[highestIndexInAlbum]
-		}
-		if ignoreFolderForLabeling(folderInfo.path) {
-			log.Printf("Ignoring path: %s\n", folderInfo.path)
-			continue
 		}
 		listOfFolderInfo = append(listOfFolderInfo, folderInfo)
 	}
 
-	return listOfFolderInfo, nil
+	return listOfFolderInfo
 }
 
 type FolderInfo struct {

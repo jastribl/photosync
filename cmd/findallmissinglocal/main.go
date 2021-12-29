@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/jastribl/photosync/config"
@@ -30,17 +31,14 @@ func main() {
 	fmt.Println("Running for the following input")
 	fmt.Println("Root picture dir: '" + rootPicturesDir + "'")
 
-	allLocalFileNamesMap, err := files.GetAllFileNamesInDirAsMap(
+	allLocalFileNamesMap := files.GetAllFileNamesInDirAsMap(
 		rootPicturesDir,
-		[]string{},
-		map[string]bool{},
+		[]*regexp.Regexp{},
+		[]*regexp.Regexp{},
 	)
 	allLocalFilesLowerCaseMap := map[string]int{}
 	for fileName, count := range allLocalFileNamesMap {
 		allLocalFilesLowerCaseMap[strings.ToLower(fileName)] = count
-	}
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	allPhotosMediaItems, err := client.GetAllMediaItems(true)

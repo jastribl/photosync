@@ -10,8 +10,7 @@ import (
 func GetAllFileNamesInDir(
 	rootDir string,
 	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
-	fileNamesToIgnoreMap map[string]bool,
-) ([]string, error) {
+) []string {
 	toReturn := []string{}
 
 	queue := []string{rootDir}
@@ -21,7 +20,7 @@ func GetAllFileNamesInDir(
 
 		files, err := ioutil.ReadDir(nextItem)
 		if err != nil {
-			return nil, err
+			log.Fatalf("Error reading dir '%s': %s\n", nextItem, err.Error())
 		}
 		for _, file := range files {
 			if file.IsDir() {
@@ -30,33 +29,26 @@ func GetAllFileNamesInDir(
 				} else {
 					log.Println("skipping dir: " + file.Name())
 				}
-			} else if _, found := fileNamesToIgnoreMap[file.Name()]; found {
-				continue
 			} else if file.Name() == ".DS_Store" {
-				log.Println("wat... found .DS_Store")
+				continue
 			} else {
 				toReturn = append(toReturn, file.Name())
 			}
 		}
 	}
 
-	return toReturn, nil
+	return toReturn
 }
 
 func GetAllFileNamesInDirAsMap(
 	rootDir string,
 	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
-	fileNamesToIgnoreMap map[string]bool,
-) (map[string]int, error) {
-	allDriveFileNamesArr, err := GetAllFileNamesInDir(
+) map[string]int {
+	allDriveFileNamesArr := GetAllFileNamesInDir(
 		rootDir,
 		folderDenyRegexs,
 		folderAllowRegexs,
-		fileNamesToIgnoreMap,
 	)
-	if err != nil {
-		return nil, err
-	}
 	toReturn := map[string]int{}
 	for _, fileName := range allDriveFileNamesArr {
 		if _, hasKey := toReturn[fileName]; hasKey {
@@ -65,7 +57,7 @@ func GetAllFileNamesInDirAsMap(
 		}
 		toReturn[fileName] = 1
 	}
-	return toReturn, nil
+	return toReturn
 }
 
 func StrMatchesAnyAndNotAny(s string, denyRegexs, allowRegexs []*regexp.Regexp) bool {

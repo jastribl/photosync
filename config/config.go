@@ -2,8 +2,10 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
+	"regexp"
+
+	"github.com/jastribl/photosync/utils"
 )
 
 // Config is the struct that holds splitwise config info
@@ -20,11 +22,10 @@ type Config struct {
 	RedirectURL  string   `json:"redirect-url"`
 
 	// Program Config
-	FreeBeforeDate                string          `json:"free-before-date"`
-	RootPicturesDir               string          `json:"root-pictures-dir"`
-	PicturePathSubstringsToIgnore []string        `json:"picture-path-substrings-to-ignore"`
-	FileNamesToIgnoreArray        []string        `json:"file-names-to-ignore"`
-	FileNamesToIgnoreMap          map[string]bool `json:"-"`
+	FreeBeforeDate                string           `json:"free-before-date"`
+	RootPicturesDir               string           `json:"root-pictures-dir"`
+	PicturePathSubstringsToIgnore []string         `json:"picture-path-substrings-to-ignore"`
+	PicturePathRegexsToIgnore     []*regexp.Regexp `json:"-"`
 }
 
 var configCache *Config
@@ -34,10 +35,8 @@ func NewConfig() *Config {
 	if configCache == nil {
 		configCache = new(Config)
 		configFile, err := os.Open("config/config.json")
+		utils.FatalError(err)
 		defer configFile.Close()
-		if err != nil {
-			fmt.Println(err.Error())
-		}
 		jsonParser := json.NewDecoder(configFile)
 		jsonParser.Decode(configCache)
 
@@ -45,9 +44,12 @@ func NewConfig() *Config {
 		configCache.TokenDoneSignal = make(chan bool)
 
 		// Data Prepping
-		configCache.FileNamesToIgnoreMap = make(map[string]bool)
-		for _, item := range configCache.FileNamesToIgnoreArray {
-			configCache.FileNamesToIgnoreMap[item] = true
+		configCache.PicturePathRegexsToIgnore = []*regexp.Regexp{}
+		for _, regexToIgnore := range configCache.PicturePathSubstringsToIgnore {
+			configCache.PicturePathRegexsToIgnore = append(
+				configCache.PicturePathRegexsToIgnore,
+				regexp.MustCompile(regexToIgnore),
+			)
 		}
 	}
 	return configCache

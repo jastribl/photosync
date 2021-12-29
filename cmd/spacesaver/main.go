@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/jastribl/photosync/config"
@@ -25,14 +26,11 @@ func main() {
 	}
 
 	rootPicturesDir := cfg.RootPicturesDir
-	allFileNames, err := files.GetAllFileNamesInDirAsMap(
+	allFileNames := files.GetAllFileNamesInDirAsMap(
 		rootPicturesDir,
-		cfg.PicturePathSubstringsToIgnore,
-		cfg.FileNamesToIgnoreMap,
+		cfg.PicturePathRegexsToIgnore,
+		[]*regexp.Regexp{},
 	)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	mediaItmes, err := client.GetAllMediaItems(true)
 	if err != nil {
