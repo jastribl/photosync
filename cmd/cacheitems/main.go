@@ -7,7 +7,6 @@ import (
 
 	"github.com/jastribl/photosync/config"
 	"github.com/jastribl/photosync/photos"
-	"github.com/jastribl/photosync/utils"
 )
 
 func main() {
@@ -20,14 +19,20 @@ func main() {
 
 	// Get a new Photos Client
 	client, err := photos.NewClientForUser(cfg)
-	utils.FatalError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	allMediaItems, err := client.GetAllMediaItems(true)
-	utils.FatalError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Printf("Old Cache Size: %d\n", len(allMediaItems))
 
 	allMediaItems, err = client.CacheAllMediaItems()
-	utils.FatalError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Printf("New Cache Size: %d\n", len(allMediaItems))
 }

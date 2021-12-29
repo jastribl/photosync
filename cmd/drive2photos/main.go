@@ -10,7 +10,6 @@ import (
 	"github.com/jastribl/photosync/config"
 	"github.com/jastribl/photosync/files"
 	"github.com/jastribl/photosync/photos"
-	"github.com/jastribl/photosync/utils"
 )
 
 func main() {
@@ -23,7 +22,9 @@ func main() {
 
 	// Get a new Photos Client
 	client, err := photos.NewClientForUser(cfg)
-	utils.FatalError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	args := os.Args[1:]
 	rootPicturesDir := args[0]
@@ -52,19 +53,25 @@ func main() {
 
 	log.Println("Getting album")
 	album, err := client.GetAlbumWithTitleContains(albumName)
-	utils.FatalError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if album == nil {
 		log.Fatal("Album not found with name '" + albumName + "'")
 	}
 
 	log.Println("Getting album media items")
 	albumMediaItems, err := client.GetAllMediaItemsForAlbum(album)
-	utils.FatalError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	allAlbumFileNamesLowerCaseToMediaItems := mediaItemsToLowercaseFilenameMap(albumMediaItems)
 
 	log.Println("Getting all media items")
 	allMediaItems, err := client.GetAllMediaItems(true)
-	utils.FatalError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	allMediaItemLowerCaseFilenamesToMediaItems := mediaItemsToLowercaseFilenameMap(allMediaItems)
 
 	numExtra := 0

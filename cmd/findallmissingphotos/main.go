@@ -10,7 +10,6 @@ import (
 	"github.com/jastribl/photosync/config"
 	"github.com/jastribl/photosync/files"
 	"github.com/jastribl/photosync/photos"
-	"github.com/jastribl/photosync/utils"
 )
 
 func main() {
@@ -23,7 +22,9 @@ func main() {
 
 	// Get a new Photos Client
 	client, err := photos.NewClientForUser(cfg)
-	utils.FatalError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	args := os.Args[1:]
 	rootPicturesDir := args[0]
@@ -37,7 +38,9 @@ func main() {
 	)
 
 	allPhotosMediaItems, err := client.GetAllMediaItems(true)
-	utils.FatalError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	allPhotosLowerCaseFilenamesToMedia := map[string][]*photos.MediaItem{}
 	for _, mediaItem := range allPhotosMediaItems {

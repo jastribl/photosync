@@ -12,16 +12,7 @@ import (
 	"github.com/jastribl/photosync/config"
 	"github.com/jastribl/photosync/files"
 	"github.com/jastribl/photosync/photos"
-	"github.com/jastribl/photosync/utils"
 )
-
-// folderToIngoreContainsLowercase := []string{
-// 	"Photos from Others",
-// 	"Pictures from Others",
-// 	"2018-03-09 - Club",
-// 	"Pictures from Dad",
-// 	"Dads Pictures",
-// }
 
 // 2021
 var (
@@ -64,7 +55,9 @@ func main() {
 
 	// Get a new Photos Client
 	client, err := photos.NewClientForUser(cfg)
-	utils.FatalError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	args := os.Args[1:]
 	rootPicturesDir := args[0]
@@ -78,7 +71,9 @@ func main() {
 	fmt.Println("Album Name: '" + albumName + "'")
 
 	album, err := client.GetAlbumWithTitleContains(albumName)
-	utils.FatalError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if album == nil {
 		log.Fatalln("Album not found with name '" + albumName + "'")
@@ -106,7 +101,9 @@ func main() {
 					break
 				}
 				response, err := client.AddTextEnrichmentToAlbum(album.ID, "", labelText)
-				utils.FatalError(err)
+				if err != nil {
+					log.Fatal(err)
+				}
 				if response.Error == nil || response.Error.Status != "RESOURCE_EXHAUSTED" {
 					break
 				}
@@ -145,7 +142,9 @@ func main() {
 						break
 					}
 					response, err := client.AddTextEnrichmentToAlbum(album.ID, afterMediaID, labelText)
-					utils.FatalError(err)
+					if err != nil {
+						log.Fatal(err)
+					}
 					if response.Error == nil {
 						break
 					}
@@ -169,7 +168,7 @@ func getTopLevelFolderInfoForLabelling(
 ) []*FolderInfo {
 	mediaItems, err := client.GetAllMediaItemsForAlbum(album)
 	if err != nil {
-		utils.FatalError(err)
+		log.Fatal(err)
 	}
 
 	lowerCaseFileNameToIndexInAlbum := map[string]int{}
@@ -180,7 +179,7 @@ func getTopLevelFolderInfoForLabelling(
 	// Find all top level files and assert they are all topLevelDirs
 	topLevelDirs, err := ioutil.ReadDir(rootDir)
 	if err != nil {
-		utils.FatalError(err)
+		log.Fatal(err)
 	}
 	listOfFolderInfo := []*FolderInfo{}
 	for _, topLevelDir := range topLevelDirs {
