@@ -26,8 +26,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	args := os.Args[1:]
-	rootPicturesDir := args[0]
+	rootPicturesDir := cfg.RootPicturesDir
 	fmt.Println("Running for the following input")
 	fmt.Println("Root picture dir: '" + rootPicturesDir + "'")
 
