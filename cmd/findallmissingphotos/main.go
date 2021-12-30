@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"strings"
 
 	"github.com/jastribl/photosync/config"
 	"github.com/jastribl/photosync/files"
@@ -40,19 +39,9 @@ func main() {
 		[]*regexp.Regexp{},
 	)
 
-	allPhotosMediaItems, err := client.GetAllMediaItemsWithCache()
+	allPhotosLowerCaseFilenamesToMedia, err := client.GetAllLowercaseFilenameToMediaItemMapWithCache()
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	allPhotosLowerCaseFilenamesToMedia := map[string][]*photos.MediaItem{}
-	for _, mediaItem := range allPhotosMediaItems {
-		lowercaseFilename := strings.ToLower(mediaItem.Filename)
-		if list, ok := allPhotosLowerCaseFilenamesToMedia[lowercaseFilename]; ok {
-			allPhotosLowerCaseFilenamesToMedia[lowercaseFilename] = append(list, mediaItem)
-		} else {
-			allPhotosLowerCaseFilenamesToMedia[lowercaseFilename] = []*photos.MediaItem{mediaItem}
-		}
 	}
 
 	for _, lowercaseLocalFilename := range allLowercaseLocalFilenames {

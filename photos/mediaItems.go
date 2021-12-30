@@ -69,6 +69,15 @@ func (m *Client) GetAllMediaItemsWithCache() ([]*MediaItem, error) {
 	return allMediaItems, err
 }
 
+func (m *Client) GetAllLowercaseFilenameToMediaItemMapWithCache() (map[string][]*MediaItem, error) {
+	allMediaItems, err := m.GetAllMediaItemsWithCache()
+	if err != nil {
+		return nil, err
+	}
+
+	return MediaItemsToLowercaseFilenameMap(allMediaItems), nil
+}
+
 func (m *Client) GetAllMediaItemsForAlbum(album *Album) ([]*MediaItem, error) {
 	var allMediaItems []*MediaItem
 	lastPageToken := ""
@@ -153,7 +162,6 @@ func (m *Client) searchMediaItems(albumID, pageToken string) (*MediaItems, error
 	return d, err
 }
 
-// todo: see if this can be used everywhere and then maybe split into 2 functions, one for albums and one for all media
 func MediaItemsToLowercaseFilenameMap(mediaItems []*MediaItem) map[string][]*MediaItem {
 	lowercaseFilenamesToMediaItems := map[string][]*MediaItem{}
 	for _, item := range mediaItems {

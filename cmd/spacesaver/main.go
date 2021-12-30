@@ -41,8 +41,8 @@ func main() {
 	freeBefore, _ := time.Parse("2006-01-02", cfg.FreeBeforeDate)
 
 	for _, mediaItem := range mediaItmes {
-		filename := mediaItem.Filename
-		_, found := allLowercaseFilenames[strings.ToLower(filename)]
+		lowercaseFilename := strings.ToLower(mediaItem.Filename)
+		_, found := allLowercaseFilenames[lowercaseFilename]
 		if !found {
 			timeOfImage, err := time.Parse(
 				"2006-01-02T15:04:05Z",

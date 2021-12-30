@@ -24,11 +24,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	allMediaItems, err := client.GetAllMediaItemsWithCache()
+	allFilenamesLowerCaseToMediaItems, err := client.GetAllLowercaseFilenameToMediaItemMapWithCache()
 	if err != nil {
 		log.Fatal(err)
 	}
-	allFilenamesLowerCaseToMediaItems := photos.MediaItemsToLowercaseFilenameMap(allMediaItems)
 
 	args := os.Args[1:]
 	rootPicturesDir := args[0]

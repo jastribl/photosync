@@ -36,14 +36,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	lowercaseFilenameToProductUrls := map[string][]string{}
-	for _, mediaItem := range allPhotosMediaItems {
-		lowercaseFilename := strings.ToLower(mediaItem.Filename)
-		if productUrlsFound, found := lowercaseFilenameToProductUrls[lowercaseFilename]; found {
-			lowercaseFilenameToProductUrls[lowercaseFilename] = append(productUrlsFound, mediaItem.ProductULR)
-		} else {
-			lowercaseFilenameToProductUrls[lowercaseFilename] = []string{mediaItem.ProductULR}
-		}
+	allLowerCaseFilenamesToMediaItems := photos.MediaItemsToLowercaseFilenameMap(allPhotosMediaItems)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	// util function to check the map and decrement
@@ -74,13 +69,13 @@ MEDIA_ITEM_LOOP:
 			}
 		}
 
-		for i, productUrl := range lowercaseFilenameToProductUrls[lowercaseFilename] {
+		for i, mediaItem2 := range allLowerCaseFilenamesToMediaItems[lowercaseFilename] {
 			fmt.Printf(
 				"Missing locally one of: (%d) (%s) (%s): %s\n",
 				i,
 				mediaItem.MediaMetadata.CreationTime,
 				lowercaseFilename,
-				productUrl,
+				mediaItem2.ProductULR,
 			)
 		}
 	}

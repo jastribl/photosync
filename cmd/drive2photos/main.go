@@ -64,11 +64,10 @@ func main() {
 	allAlbumFilenamesLowerCaseToMediaItems := photos.MediaItemsToLowercaseFilenameMap(albumMediaItems)
 
 	log.Println("Getting all media items")
-	allMediaItems, err := client.GetAllMediaItemsWithCache()
+	allPhotosLowerCaseFilenamesToMediaItems, err := client.GetAllLowercaseFilenameToMediaItemMapWithCache()
 	if err != nil {
 		log.Fatal(err)
 	}
-	allMediaItemLowerCaseFilenamesToMediaItems := photos.MediaItemsToLowercaseFilenameMap(allMediaItems)
 
 	numExtra := 0
 MEDIA_ITEM_LOOP:
@@ -113,12 +112,12 @@ MEDIA_ITEM_LOOP:
 			continue
 		}
 
-		if mediaItems, ok := allMediaItemLowerCaseFilenamesToMediaItems[filenameLowerCase]; ok {
+		if mediaItems, ok := allPhotosLowerCaseFilenamesToMediaItems[filenameLowerCase]; ok {
 			// Check if we have a media item for this file name - if so print that out so we can add it
 			for i, mediaItem := range mediaItems {
 				fmt.Printf("Link to missing in Photos: (%s) (%d): %s\n", filenameLowerCase, i, mediaItem.ProductULR)
 			}
-		} else if mediaItems, ok := allMediaItemLowerCaseFilenamesToMediaItems[filenameLowerCaseHEIC]; ok {
+		} else if mediaItems, ok := allPhotosLowerCaseFilenamesToMediaItems[filenameLowerCaseHEIC]; ok {
 			// Check for the same thing but with extensions swapped
 			for i, mediaItem := range mediaItems {
 				fmt.Printf("Link to missing in Photos: (%s) (%d): %s\n", filenameLowerCaseHEIC, i, mediaItem.ProductULR)
