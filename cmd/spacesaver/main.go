@@ -27,15 +27,11 @@ func main() {
 	}
 
 	rootPicturesDir := cfg.RootPicturesDir
-	allFilenames := files.GetAllFilenamesInDirAsMap(
+	allLowercaseFilenames := files.GetAllLowercaseFilenamesInDirAsMap(
 		rootPicturesDir,
 		cfg.PicturePathRegexsToIgnore,
 		[]*regexp.Regexp{},
 	)
-	allFilenamesLowerCaseMap := map[string]int{}
-	for filename, count := range allFilenames {
-		allFilenamesLowerCaseMap[strings.ToLower(filename)] = count
-	}
 
 	mediaItmes, err := client.GetAllMediaItemsWithCache()
 	if err != nil {
@@ -46,7 +42,7 @@ func main() {
 
 	for _, mediaItem := range mediaItmes {
 		filename := mediaItem.Filename
-		_, found := allFilenamesLowerCaseMap[strings.ToLower(filename)]
+		_, found := allLowercaseFilenames[strings.ToLower(filename)]
 		if !found {
 			timeOfImage, err := time.Parse(
 				"2006-01-02T15:04:05Z",

@@ -31,7 +31,7 @@ func main() {
 	fmt.Println("Running for the following input")
 	fmt.Println("Root picture dir: '" + rootPicturesDir + "'")
 
-	allLocalFilenames := files.GetAllFilenamesInDir(
+	allLowercaseLocalFilenames := files.GetAllLowercaseFilenamesInDir(
 		rootPicturesDir,
 		[]*regexp.Regexp{
 			regexp.MustCompile(".*[pP]ictures [fF]rom .*$"),
@@ -55,8 +55,7 @@ func main() {
 		}
 	}
 
-	for _, localFilename := range allLocalFilenames {
-		lowercaseLocalFilename := strings.ToLower(localFilename)
+	for _, lowercaseLocalFilename := range allLowercaseLocalFilenames {
 		if items, ok := allPhotosLowerCaseFilenamesToMedia[lowercaseLocalFilename]; ok {
 			if len(items) > 1 {
 				fmt.Printf("Found multiple media (%d) for filename %s\n", len(items), lowercaseLocalFilename)

@@ -5,13 +5,14 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 )
 
-func GetAllFilenamesInDir(
+func GetAllLowercaseFilenamesInDir(
 	rootDir string,
 	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
 ) []string {
-	toReturn := []string{}
+	lowercaseFilenames := []string{}
 
 	queue := []string{rootDir}
 	for len(queue) > 0 {
@@ -32,30 +33,29 @@ func GetAllFilenamesInDir(
 			} else if file.Name() == ".DS_Store" {
 				continue
 			} else {
-				toReturn = append(toReturn, file.Name())
+				lowercaseFilenames = append(lowercaseFilenames, strings.ToLower(file.Name()))
 			}
 		}
 	}
 
-	return toReturn
+	return lowercaseFilenames
 }
 
-// todo: change to lower case maybe?
-func GetAllFilenamesInDirAsMap(
+func GetAllLowercaseFilenamesInDirAsMap(
 	rootDir string,
 	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
 ) map[string]int {
-	allDriveFilenamesArr := GetAllFilenamesInDir(
+	allDriveLowercaseFilenamesArr := GetAllLowercaseFilenamesInDir(
 		rootDir,
 		folderDenyRegexs,
 		folderAllowRegexs,
 	)
 	toReturn := map[string]int{}
-	for _, filename := range allDriveFilenamesArr {
-		if _, hasKey := toReturn[filename]; hasKey {
-			toReturn[filename] = toReturn[filename] + 1
+	for _, lowercaseFilename := range allDriveLowercaseFilenamesArr {
+		if _, hasKey := toReturn[lowercaseFilename]; hasKey {
+			toReturn[lowercaseFilename] = toReturn[lowercaseFilename] + 1
 		} else {
-			toReturn[filename] = 1
+			toReturn[lowercaseFilename] = 1
 		}
 	}
 	return toReturn

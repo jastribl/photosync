@@ -167,15 +167,14 @@ func getTopLevelFolderInfoForLabelling(
 			continue
 		}
 
-		filesNamesInDir := files.GetAllFilenamesInDir(
+		lowercaseFileNamesInDir := files.GetAllLowercaseFilenamesInDir(
 			fullPathWithRoot,
 			FOLDER_DENY_REGEXS[:],
 			FOLDER_ALLOW_REGEXS[:],
 		)
 
 		highestIndexInAlbum := -1
-		for _, filename := range filesNamesInDir {
-			lowercaseFilename := strings.ToLower(filename)
+		for _, lowercaseFilename := range lowercaseFileNamesInDir {
 			indexInAlbum, foundFile := lowercaseFilenameToIndexInAlbum[lowercaseFilename]
 			if foundFile && (highestIndexInAlbum == -1 || indexInAlbum > highestIndexInAlbum) {
 				highestIndexInAlbum = indexInAlbum

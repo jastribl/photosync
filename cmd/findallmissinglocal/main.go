@@ -26,15 +26,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	allLocalFilenamesMap := files.GetAllFilenamesInDirAsMap(
+	allLocalLowercaseFilenamesMap := files.GetAllLowercaseFilenamesInDirAsMap(
 		cfg.RootPicturesDir,
 		[]*regexp.Regexp{},
 		[]*regexp.Regexp{},
 	)
-	allLocalFilesLowerCaseMap := map[string]int{}
-	for filename, count := range allLocalFilenamesMap {
-		allLocalFilesLowerCaseMap[strings.ToLower(filename)] = count
-	}
 
 	allPhotosMediaItems, err := client.GetAllMediaItemsWithCache()
 	if err != nil {
@@ -58,13 +54,13 @@ func main() {
 
 	// util function to check the map and decrement
 	checkAndRemoveFilenameFromMap := func(key string) bool {
-		numLeft, found := allLocalFilesLowerCaseMap[key]
+		numLeft, found := allLocalLowercaseFilenamesMap[key]
 		if found {
 			// This means we found it, reduce the number from the map
 			if numLeft == 1 {
-				delete(allLocalFilesLowerCaseMap, key)
+				delete(allLocalLowercaseFilenamesMap, key)
 			} else {
-				allLocalFilesLowerCaseMap[key] -= 1
+				allLocalLowercaseFilenamesMap[key] -= 1
 			}
 		}
 		return found
