@@ -33,7 +33,10 @@ func main() {
 
 	allLocalFileNames := files.GetAllFileNamesInDir(
 		rootPicturesDir,
-		[]*regexp.Regexp{},
+		[]*regexp.Regexp{
+			regexp.MustCompile(".*[pP]ictures [fF]rom .*$"),
+			regexp.MustCompile(".*[pP]hotos [fF]rom .*$"),
+		},
 		[]*regexp.Regexp{},
 	)
 
