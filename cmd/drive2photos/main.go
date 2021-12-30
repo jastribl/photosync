@@ -48,7 +48,7 @@ func main() {
 	)
 
 	log.Println("Getting album")
-	album, err := client.GetAlbumWithTitleContains(albumName)
+	album, err := client.GetAlbumWithTitle(albumName)
 	if err != nil {
 		log.Fatal(err)
 	}

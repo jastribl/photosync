@@ -25,6 +25,7 @@ var (
 
 type FolderInfo struct {
 	Path          string
+	NumMediaItems int
 	LastMediaItem *photos.MediaItem
 }
 
@@ -51,13 +52,15 @@ func GetTopLevelFolderInfo(
 	client *photos.Client,
 	album *photos.Album,
 ) []*FolderInfo {
-	mediaItems, err := client.GetAllMediaItemsForAlbum(album)
+	albumMediaItems, err := client.GetAllMediaItemsForAlbum(album)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	lowercaseFilenameToAlbumMediaMap := photos.MediaItemsToLowercaseFilenameMap(albumMediaItems)
+
 	lowercaseFilenameToIndexInAlbum := map[string]int{}
-	for i, item := range mediaItems {
+	for i, item := range albumMediaItems {
 		lowercaseFilenameToIndexInAlbum[strings.ToLower(item.Filename)] = i
 	}
 
@@ -88,18 +91,24 @@ func GetTopLevelFolderInfo(
 		)
 
 		highestIndexInAlbum := -1
+		numMediaItemsInDir := 0
 		for _, lowercaseFilename := range lowercaseFileNamesInDir {
+			// find highest index item in folder
 			indexInAlbum, foundFile := lowercaseFilenameToIndexInAlbum[lowercaseFilename]
 			if foundFile && (highestIndexInAlbum == -1 || indexInAlbum > highestIndexInAlbum) {
 				highestIndexInAlbum = indexInAlbum
 			}
+
+			// also find the number of items in each folder
+			numMediaItemsInDir += len(lowercaseFilenameToAlbumMediaMap[lowercaseFilename])
 		}
 
 		folderInfo := &FolderInfo{
-			Path: fullPathWithRoot,
+			Path:          fullPathWithRoot,
+			NumMediaItems: numMediaItemsInDir,
 		}
 		if highestIndexInAlbum != -1 {
-			folderInfo.LastMediaItem = mediaItems[highestIndexInAlbum]
+			folderInfo.LastMediaItem = albumMediaItems[highestIndexInAlbum]
 		}
 		listOfFolderInfo = append(listOfFolderInfo, folderInfo)
 	}

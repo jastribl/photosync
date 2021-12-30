@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 )
 
@@ -72,14 +71,14 @@ func (m *Client) GetAllAlbums() ([]*Album, error) {
 	return allAlbums, nil
 }
 
-func (m *Client) GetAlbumWithTitleContains(title string) (*Album, error) {
+func (m *Client) GetAlbumWithTitle(title string) (*Album, error) {
 	albums, err := m.GetAllAlbums()
 	if err != nil {
 		return nil, err
 	}
 
 	for _, album := range albums {
-		if strings.Contains(album.Title, title) {
+		if album.Title == title {
 			return album, nil
 		}
 	}
@@ -143,20 +142,23 @@ func (m *Client) AddTextEnrichmentToAlbum(
 		if sleepSeconds > 10 {
 			sleepSeconds = 10
 		}
+		request := AddEnrichmentToAlbumRequest{
+			NewEnrichmentItem: &NewEnrichmentItem{
+				TextEnrichment: &TextEnrichment{
+					Text: labelText,
+				},
+			},
+			AlbumPosition: &AlbumPosition{
+				Position: position,
+			},
+		}
+		if afterMediaItem != nil {
+			request.AlbumPosition.RelativeMediaItemId = afterMediaItem.ID
+		}
 		response := &AddEnrichmentResponse{}
 		err := m.postJson(
 			fmt.Sprintf("https://photoslibrary.googleapis.com/v1/albums/%s:addEnrichment", albumID),
-			AddEnrichmentToAlbumRequest{
-				NewEnrichmentItem: &NewEnrichmentItem{
-					TextEnrichment: &TextEnrichment{
-						Text: labelText,
-					},
-				},
-				AlbumPosition: &AlbumPosition{
-					Position:            position,
-					RelativeMediaItemId: afterMediaItem.ID,
-				},
-			},
+			request,
 			response,
 		)
 		if err != nil {

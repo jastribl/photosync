@@ -6,7 +6,6 @@ build_all: \
 	drive2photos \
 	findallmissinglocal \
 	findallmissingphotos \
-	incrementallabel \
 	labelphotos \
 	sortlocal \
 	spacesaver
@@ -30,9 +29,6 @@ findallmissinglocal:
 findallmissingphotos:
 	go build -o bin/$@ cmd/$@/main.go
 
-incrementallabel:
-	go build -o bin/$@ cmd/$@/main.go
-
 labelphotos:
 	go build -o bin/$@ cmd/$@/main.go
 
@@ -53,4 +49,3 @@ check: findallmissingphotos findallmissinglocal
 	./bin/findallmissingphotos ~/Pictures/All\ Pictures/Seattle\ 2021/ >> out
 	./bin/findallmissingphotos ~/Pictures/All\ Pictures/Winter\ 2019\ Term/ >> out
 	cat out
-	

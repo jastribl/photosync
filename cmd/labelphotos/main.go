@@ -33,13 +33,11 @@ func main() {
 	}
 	fmt.Println("Running for the following input")
 	fmt.Println("Root picture dir: '" + rootPicturesDir + "'")
-	fmt.Println("Album Name: '" + albumName + "'")
 
-	album, err := client.GetAlbumWithTitleContains(albumName)
+	album, err := client.GetAlbumWithTitle(albumName)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	if album == nil {
 		log.Fatalln("Album not found with name '" + albumName + "'")
 	}
@@ -47,8 +45,12 @@ func main() {
 	listOfFolderInfo := labelling.GetTopLevelFolderInfo(rootPicturesDir, client, album)
 
 	for i, folderInfo := range listOfFolderInfo {
+		if folderInfo.NumMediaItems == 0 {
+			log.Printf("No pictures from '%s' in the album '%s', skipping\n", folderInfo.Path, albumName)
+			continue
+		}
 		if folderInfo.Path == rootPicturesDir {
-			log.Println("Not adding label for root")
+			log.Println("Not adding label for root dir")
 			continue
 		}
 		if labelling.ShouldIgnoreFolder(folderInfo.Path) {
@@ -56,16 +58,7 @@ func main() {
 			continue
 		}
 		labelText := folderInfo.Path[len(rootPicturesDir) : len(folderInfo.Path)-1]
-		if i == len(listOfFolderInfo)-1 {
-			fmt.Printf("Adding '%s' at the beginning of the album\n", labelText)
-			if !createLabels {
-				break
-			}
-			_, err := client.AddTextEnrichmentToAlbum(album.ID, nil, labelText)
-			if err != nil {
-				log.Fatal(err)
-			}
-		} else {
+		if i != len(listOfFolderInfo)-1 {
 			var lastMediaItemOfNextFolder *photos.MediaItem = nil
 			nextFolderPath := ""
 			for j := i + 1; lastMediaItemOfNextFolder == nil && j < len(listOfFolderInfo); j += 1 {
@@ -74,7 +67,11 @@ func main() {
 				lastMediaItemOfNextFolder = nextFolderInfo.LastMediaItem
 			}
 			if lastMediaItemOfNextFolder == nil {
-				log.Fatalln("Got no first pic of next folder for folder")
+				log.Printf(
+					"Got no first pic of next folder for '%s', so we must label the front of the album instead\n",
+					labelText,
+				)
+				goto LABEL_BEGINNING_OF_ALBUM
 			}
 
 			afterMediaID := lastMediaItemOfNextFolder.ID
@@ -88,12 +85,23 @@ func main() {
 				nextFolderPath,
 			)
 			if !createLabels {
-				break
+				continue
 			}
 			_, err := client.AddTextEnrichmentToAlbum(album.ID, lastMediaItemOfNextFolder, labelText)
 			if err != nil {
 				log.Fatal(err)
 			}
+			continue
+		}
+
+	LABEL_BEGINNING_OF_ALBUM:
+		fmt.Printf("Adding '%s' at the beginning of the album\n", labelText)
+		if !createLabels {
+			continue
+		}
+		_, err := client.AddTextEnrichmentToAlbum(album.ID, nil, labelText)
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 }

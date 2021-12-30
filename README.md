@@ -11,3 +11,12 @@ Running this script will list our all the image urls that you might want to remo
 ```
 go run cmd/spacesaver/main.go
 ```
+
+## Common commands
+```
+// General check of sanity
+make check
+
+// Label recent pictures:
+go run cmd/labelphotos/main.go /Users/justinstribling/Desktop/To\ sort/ Seattle\ 2021 [--create]s
+```
