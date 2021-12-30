@@ -32,7 +32,7 @@ func main() {
 		[]*regexp.Regexp{},
 	)
 
-	mediaItmes, err := client.GetAllMediaItems(true)
+	mediaItmes, err := client.GetAllMediaItemsWithCache()
 	if err != nil {
 		log.Fatal(err)
 	}

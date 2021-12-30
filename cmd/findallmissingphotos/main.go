@@ -37,7 +37,7 @@ func main() {
 		[]*regexp.Regexp{},
 	)
 
-	allPhotosMediaItems, err := client.GetAllMediaItems(true)
+	allPhotosMediaItems, err := client.GetAllMediaItemsWithCache()
 	if err != nil {
 		log.Fatal(err)
 	}

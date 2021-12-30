@@ -23,13 +23,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	allMediaItems, err := client.GetAllMediaItems(true)
+	allMediaItems, err := client.GetAllMediaItemsWithCache()
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("Old Cache Size: %d\n", len(allMediaItems))
 
-	allMediaItems, err = client.CacheAllMediaItems()
+	allMediaItems, err = client.CacheAndReturnAllMediaItems()
 	if err != nil {
 		log.Fatal(err)
 	}

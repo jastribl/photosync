@@ -13,48 +13,7 @@ import (
 
 const allMediaItemsCacheFile = "cache/allMediaItems.json"
 
-// CacheAllMediaItem
-func (m *Client) CacheAllMediaItems() ([]*MediaItem, error) {
-	allMediaItems, err := m.GetAllMediaItems(false)
-	if err != nil {
-		return nil, err
-	}
-
-	bytes, _ := json.MarshalIndent(allMediaItems, "", " ")
-
-	file, err := os.Create(allMediaItemsCacheFile)
-	if err != nil {
-		return nil, err
-	}
-	file.Close()
-	err = ioutil.WriteFile(allMediaItemsCacheFile, bytes, 0644)
-
-	return allMediaItems, err
-}
-
-func (m *Client) getMediaItemsFromCache() ([]*MediaItem, error) {
-	var allMediaItems []*MediaItem
-
-	// todo: make this generic for other calls?
-	bytes, err := ioutil.ReadFile(allMediaItemsCacheFile)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal([]byte(bytes), &allMediaItems)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("Using cache to get %d media items\n", len(allMediaItems))
-	return allMediaItems, err
-}
-
-// GetAllMediaItems gets all media items
-func (m *Client) GetAllMediaItems(useCache bool) ([]*MediaItem, error) {
-	if useCache && files.FileExists(allMediaItemsCacheFile) {
-		return m.getMediaItemsFromCache()
-	}
-
+func (m *Client) CacheAndReturnAllMediaItems() ([]*MediaItem, error) {
 	var allMediaItems []*MediaItem
 	lastPageToken := ""
 	for {
@@ -69,7 +28,40 @@ func (m *Client) GetAllMediaItems(useCache bool) ([]*MediaItem, error) {
 		}
 	}
 
-	return allMediaItems, nil
+	bytes, _ := json.MarshalIndent(allMediaItems, "", " ")
+
+	file, err := os.Create(allMediaItemsCacheFile)
+	if err != nil {
+		return nil, err
+	}
+	file.Close()
+	err = ioutil.WriteFile(allMediaItemsCacheFile, bytes, 0644)
+
+	return allMediaItems, err
+}
+
+func (m *Client) GetAllMediaItemsWithCache() ([]*MediaItem, error) {
+	if !files.FileExists(allMediaItemsCacheFile) {
+		allMediaItems, err := m.CacheAndReturnAllMediaItems()
+		if err != nil {
+			return nil, err
+		}
+		return allMediaItems, nil
+	}
+
+	var allMediaItems []*MediaItem
+
+	bytes, err := ioutil.ReadFile(allMediaItemsCacheFile)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal([]byte(bytes), &allMediaItems)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("Using cache to get %d media items\n", len(allMediaItems))
+	return allMediaItems, err
 }
 
 func (m *Client) GetAllMediaItemsForAlbum(album *Album) ([]*MediaItem, error) {

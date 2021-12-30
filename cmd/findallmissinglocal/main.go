@@ -41,7 +41,7 @@ func main() {
 		allLocalFilesLowerCaseMap[strings.ToLower(fileName)] = count
 	}
 
-	allPhotosMediaItems, err := client.GetAllMediaItems(true)
+	allPhotosMediaItems, err := client.GetAllMediaItemsWithCache()
 	if err != nil {
 		log.Fatal(err)
 	}

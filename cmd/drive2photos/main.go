@@ -68,7 +68,7 @@ func main() {
 	allAlbumFileNamesLowerCaseToMediaItems := mediaItemsToLowercaseFilenameMap(albumMediaItems)
 
 	log.Println("Getting all media items")
-	allMediaItems, err := client.GetAllMediaItems(true)
+	allMediaItems, err := client.GetAllMediaItemsWithCache()
 	if err != nil {
 		log.Fatal(err)
 	}
