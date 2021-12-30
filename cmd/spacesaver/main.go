@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/jastribl/photosync/config"
@@ -31,6 +32,10 @@ func main() {
 		cfg.PicturePathRegexsToIgnore,
 		[]*regexp.Regexp{},
 	)
+	allFilenamesLowerCaseMap := map[string]int{}
+	for fileName, count := range allFileNames {
+		allFilenamesLowerCaseMap[strings.ToLower(fileName)] = count
+	}
 
 	mediaItmes, err := client.GetAllMediaItemsWithCache()
 	if err != nil {
@@ -41,7 +46,8 @@ func main() {
 
 	for _, mediaItem := range mediaItmes {
 		filename := mediaItem.Filename
-		_, found := allFileNames[filename]
+		// todo: maybe check the numbers returned here
+		_, found := allFilenamesLowerCaseMap[strings.ToLower(filename)]
 		if !found {
 			timeOfImage, err := time.Parse(
 				"2006-01-02T15:04:05Z",

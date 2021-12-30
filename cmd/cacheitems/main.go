@@ -27,12 +27,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Old Cache Size: %d\n", len(allMediaItems))
+	oldCacheSize := len(allMediaItems)
+	fmt.Printf("Old Cache Size: %d\n", oldCacheSize)
 
 	allMediaItems, err = client.CacheAndReturnAllMediaItems()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	fmt.Printf("Old Cache Size: %d\n", oldCacheSize)
 	fmt.Printf("New Cache Size: %d\n", len(allMediaItems))
 }

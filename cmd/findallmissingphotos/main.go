@@ -26,7 +26,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	rootPicturesDir := cfg.RootPicturesDir
+	args := os.Args[1:]
+	rootPicturesDir := args[0]
 	fmt.Println("Running for the following input")
 	fmt.Println("Root picture dir: '" + rootPicturesDir + "'")
 
@@ -51,11 +52,6 @@ func main() {
 		}
 	}
 
-	// fileNameReplacements := []struct{ a, b string }{
-	// 	{".heic", ".jpg"},
-	// 	{".jpg", ".heic"},
-	// }
-
 	for _, localFilename := range allLocalFileNames {
 		lowerCaseLocalFilename := strings.ToLower(localFilename)
 		if items, ok := allPhotosLowerCaseFilenamesToMedia[lowerCaseLocalFilename]; ok {
@@ -69,28 +65,4 @@ func main() {
 			fmt.Printf("Photos missing: %s\n", lowerCaseLocalFilename)
 		}
 	}
-
-	// for _, mediaItem := range allPhotosMediaItems {
-	// 	lowerCaseFileName := strings.ToLower(mediaItem.Filename)
-	// 	if _, ok := allLocalFilesLowerCaseMap[mediaItem.Filename]; ok {
-	// 		continue
-	// 	}
-	// 	found := false
-	// 	for _, pair := range fileNameReplacements {
-	// 		if _, ok := allLocalFilesLowerCaseMap[strings.ReplaceAll(lowerCaseFileName, pair.a, pair.b)]; ok {
-	// 			found = true
-	// 			break
-	// 		}
-	// 	}
-	// 	if found {
-	// 		continue
-	// 	}
-
-	// 	fmt.Printf(
-	// 		"Missing locally: (%s) (%s): %s\n",
-	// 		mediaItem.MediaMetadata.CreationTime,
-	// 		lowerCaseFileName,
-	// 		mediaItem.ProductULR,
-	// 	)
-	// }
 }

@@ -75,6 +75,7 @@ func main() {
 	allMediaItemLowerCaseFilenamesToMediaItems := mediaItemsToLowercaseFilenameMap(allMediaItems)
 
 	numExtra := 0
+MEDIA_ITEM_LOOP:
 	for fileNameLowerCase, mediaItems := range allAlbumFileNamesLowerCaseToMediaItems {
 		fileNameLowerCase = strings.ToLower(fileNameLowerCase)
 
@@ -88,26 +89,23 @@ func main() {
 			{".heic", ".jpg"},
 			{".jpg", ".heic"},
 		}
-		found := false
 		for _, pair := range fileNameReplacements {
 			if _, ok := allDriveLowercaseFilenamesMap[strings.ReplaceAll(fileNameLowerCase, pair.a, pair.b)]; ok {
-				found = true
-				break
+				continue MEDIA_ITEM_LOOP
 			}
 		}
 
-		if !found {
-			for i, mediaItem := range mediaItems {
-				fmt.Printf(
-					"Photos extra file (date: %s) (%d): %s - %s\n",
-					mediaItem.MediaMetadata.CreationTime,
-					i,
-					fileNameLowerCase,
-					mediaItem.ProductULR,
-				)
-			}
-			numExtra += 1
+		// We never found the media item
+		for i, mediaItem := range mediaItems {
+			fmt.Printf(
+				"Photos extra file (date: %s) (%d): %s - %s\n",
+				mediaItem.MediaMetadata.CreationTime,
+				i,
+				fileNameLowerCase,
+				mediaItem.ProductULR,
+			)
 		}
+		numExtra += 1
 	}
 
 	numMissing := 0

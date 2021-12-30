@@ -15,13 +15,17 @@ const allMediaItemsCacheFile = "cache/allMediaItems.json"
 
 func (m *Client) CacheAndReturnAllMediaItems() ([]*MediaItem, error) {
 	var allMediaItems []*MediaItem
-	lastPageToken := ""
-	for {
+	for lastPageToken, dedupMap := "", map[string]bool{}; ; {
 		mediaItems, err := m.getMediaItems(lastPageToken)
 		if err != nil {
 			return nil, err
 		}
-		allMediaItems = append(allMediaItems, mediaItems.MediaItems...)
+		for _, mediaItem := range mediaItems.MediaItems {
+			if _, found := dedupMap[mediaItem.ID]; !found {
+				allMediaItems = append(allMediaItems, mediaItem)
+				dedupMap[mediaItem.ID] = true
+			}
+		}
 		lastPageToken = mediaItems.NextPageToken
 		if lastPageToken == "" {
 			break
@@ -60,7 +64,7 @@ func (m *Client) GetAllMediaItemsWithCache() ([]*MediaItem, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Using cache to get %d media items\n", len(allMediaItems))
+
 	return allMediaItems, err
 }
 

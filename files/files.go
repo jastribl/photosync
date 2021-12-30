@@ -40,6 +40,7 @@ func GetAllFileNamesInDir(
 	return toReturn
 }
 
+// todo: change to lower case maybe?
 func GetAllFileNamesInDirAsMap(
 	rootDir string,
 	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
@@ -52,10 +53,10 @@ func GetAllFileNamesInDirAsMap(
 	toReturn := map[string]int{}
 	for _, fileName := range allDriveFileNamesArr {
 		if _, hasKey := toReturn[fileName]; hasKey {
-			log.Printf("Duplicate key?: %s\n", fileName)
 			toReturn[fileName] = toReturn[fileName] + 1
+		} else {
+			toReturn[fileName] = 1
 		}
-		toReturn[fileName] = 1
 	}
 	return toReturn
 }
