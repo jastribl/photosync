@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/jastribl/photosync/files"
 )
@@ -86,7 +87,6 @@ func (m *Client) GetAllMediaItemsForAlbum(album *Album) ([]*MediaItem, error) {
 	return allMediaItems, nil
 }
 
-// GetMediaItems gets media items
 func (m *Client) getMediaItems(pageToken string) (*MediaItems, error) {
 	otherParams := ""
 	if pageToken != "" {
@@ -120,7 +120,6 @@ type SearchRequest struct {
 	AlbumId   string `json:"albumId"`
 }
 
-// SeatchMediaItems gets media items
 func (m *Client) searchMediaItems(albumID, pageToken string) (*MediaItems, error) {
 	searchRequest := SearchRequest{
 		PageSize:  100,
@@ -152,4 +151,19 @@ func (m *Client) searchMediaItems(albumID, pageToken string) (*MediaItems, error
 	}
 
 	return d, err
+}
+
+// todo: see if this can be used everywhere and then maybe split into 2 functions, one for albums and one for all media
+func MediaItemsToLowercaseFilenameMap(mediaItems []*MediaItem) map[string][]*MediaItem {
+	lowercaseFilenamesToMediaItems := map[string][]*MediaItem{}
+	for _, item := range mediaItems {
+		lowerFilename := strings.ToLower(item.Filename)
+		if list, ok := lowercaseFilenamesToMediaItems[lowerFilename]; ok {
+			lowercaseFilenamesToMediaItems[lowerFilename] = append(list, item)
+		} else {
+			lowercaseFilenamesToMediaItems[lowerFilename] = []*MediaItem{item}
+		}
+	}
+
+	return lowercaseFilenamesToMediaItems
 }

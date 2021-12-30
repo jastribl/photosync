@@ -1,4 +1,4 @@
-export MAKEFLAGS="-j 8"
+export MAKEFLAGS="-j 16"
 
 build_all: \
 	cacheitems \
@@ -7,6 +7,7 @@ build_all: \
 	findallmissinglocal \
 	findallmissingphotos \
 	labelphotos \
+	sortlocal \
 	spacesaver
 
 clean:
@@ -29,6 +30,9 @@ findallmissingphotos:
 	go build -o bin/$@ cmd/$@/main.go
 
 labelphotos:
+	go build -o bin/$@ cmd/$@/main.go
+
+sortlocal:
 	go build -o bin/$@ cmd/$@/main.go
 
 spacesaver:

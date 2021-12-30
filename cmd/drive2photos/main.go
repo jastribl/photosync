@@ -61,14 +61,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	allAlbumFilenamesLowerCaseToMediaItems := mediaItemsToLowercaseFilenameMap(albumMediaItems)
+	allAlbumFilenamesLowerCaseToMediaItems := photos.MediaItemsToLowercaseFilenameMap(albumMediaItems)
 
 	log.Println("Getting all media items")
 	allMediaItems, err := client.GetAllMediaItemsWithCache()
 	if err != nil {
 		log.Fatal(err)
 	}
-	allMediaItemLowerCaseFilenamesToMediaItems := mediaItemsToLowercaseFilenameMap(allMediaItems)
+	allMediaItemLowerCaseFilenamesToMediaItems := photos.MediaItemsToLowercaseFilenameMap(allMediaItems)
 
 	numExtra := 0
 MEDIA_ITEM_LOOP:
@@ -132,18 +132,4 @@ MEDIA_ITEM_LOOP:
 
 	log.Printf("Num Extra: %d\n", numExtra)
 	log.Printf("Num Missing: %d\n", numMissing)
-}
-
-func mediaItemsToLowercaseFilenameMap(mediaItems []*photos.MediaItem) map[string][]*photos.MediaItem {
-	lowercaseFilenamesToMediaItems := map[string][]*photos.MediaItem{}
-	for _, item := range mediaItems {
-		lowerFilename := strings.ToLower(item.Filename)
-		if list, ok := lowercaseFilenamesToMediaItems[lowerFilename]; ok {
-			lowercaseFilenamesToMediaItems[lowerFilename] = append(list, item)
-		} else {
-			lowercaseFilenamesToMediaItems[lowerFilename] = []*photos.MediaItem{item}
-		}
-	}
-
-	return lowercaseFilenamesToMediaItems
 }

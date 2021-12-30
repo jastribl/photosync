@@ -13,11 +13,11 @@ var FILE_NAME_REPLACEMENTS = [...]struct{ A, B string }{
 	{".jpg", ".heic"},
 }
 
-func GetAllLowercaseFilenamesInDir(
+func GetAllFilenamesInDir(
 	rootDir string,
 	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
 ) []string {
-	lowercaseFilenames := []string{}
+	filenames := []string{}
 
 	queue := []string{rootDir}
 	for len(queue) > 0 {
@@ -38,9 +38,22 @@ func GetAllLowercaseFilenamesInDir(
 			} else if file.Name() == ".DS_Store" {
 				continue
 			} else {
-				lowercaseFilenames = append(lowercaseFilenames, strings.ToLower(file.Name()))
+				filenames = append(filenames, file.Name())
 			}
 		}
+	}
+
+	return filenames
+}
+
+func GetAllLowercaseFilenamesInDir(
+	rootDir string,
+	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
+) []string {
+	lowercaseFilenames := []string{}
+
+	for _, b := range GetAllFilenamesInDir(rootDir, folderDenyRegexs, folderAllowRegexs) {
+		lowercaseFilenames = append(lowercaseFilenames, strings.ToLower(b))
 	}
 
 	return lowercaseFilenames
