@@ -37,12 +37,12 @@ func main() {
 	allDriveFileNames := files.GetAllFileNamesInDirAsMap(
 		rootPicturesDir,
 		// 2021
-		[]*regexp.Regexp{ // folderDenyRegexs
+		[]*regexp.Regexp{ // FOLDER_DENY_REGEXS
 			regexp.MustCompile(".*[pP]ictures [fF]rom .*$"),
 			regexp.MustCompile(".*[pP]hotos [fF]rom .*$"),
 			regexp.MustCompile("^Wendy$"),
 		},
-		[]*regexp.Regexp{ // folderAllowRegexs
+		[]*regexp.Regexp{ // FOLDER_ALLOW_REGEXS
 			regexp.MustCompile("^Photos from Michael$"),
 		},
 	)

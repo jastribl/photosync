@@ -7,7 +7,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/jastribl/photosync/config"
 	"github.com/jastribl/photosync/files"
@@ -16,22 +15,22 @@ import (
 
 // 2021
 var (
-	folderDenyRegexs = [...]*regexp.Regexp{
+	FOLDER_DENY_REGEXS = [...]*regexp.Regexp{
 		regexp.MustCompile(".*[pP]ictures [fF]rom .*$"),
 		regexp.MustCompile(".*[pP]hotos [fF]rom .*$"),
 		regexp.MustCompile("^Wendy$"),
 	}
 
-	folderAllowRegexs = [...]*regexp.Regexp{
+	FOLDER_ALLOW_REGEXS = [...]*regexp.Regexp{
 		regexp.MustCompile("^Photos from Michael$"),
 	}
 )
 
 func ignoreFolderForLabeling(folderName string) bool {
-	for _, denyRegex := range folderDenyRegexs {
+	for _, denyRegex := range FOLDER_DENY_REGEXS {
 		if denyRegex.MatchString(folderName) {
 			denyRuling := true
-			for _, allowRegex := range folderAllowRegexs {
+			for _, allowRegex := range FOLDER_ALLOW_REGEXS {
 				if allowRegex.MatchString(folderName) {
 					denyRuling = false
 					break
@@ -92,24 +91,13 @@ func main() {
 		}
 		labelText := folderInfo.path[len(rootPicturesDir) : len(folderInfo.path)-1]
 		if i == len(listOfFolderInfo)-1 {
-			for sleepSeconds := 1; ; sleepSeconds *= 2 {
-				if sleepSeconds > 10 {
-					sleepSeconds = 10
-				}
-				fmt.Printf("Adding '%s' at the beginning of the album\n", labelText)
-				if !createLabels {
-					break
-				}
-				response, err := client.AddTextEnrichmentToAlbum(album.ID, "", labelText)
-				if err != nil {
-					log.Fatal(err)
-				}
-				if response.Error == nil || response.Error.Status != "RESOURCE_EXHAUSTED" {
-					break
-				}
-				// this means we need to retry after some time
-				log.Println("Hit API Quota Limit, retrying after a short sleep...")
-				time.Sleep(time.Duration(sleepSeconds) * time.Second)
+			fmt.Printf("Adding '%s' at the beginning of the album\n", labelText)
+			if !createLabels {
+				break
+			}
+			_, err := client.AddTextEnrichmentToAlbum(album.ID, nil, labelText)
+			if err != nil {
+				log.Fatal(err)
 			}
 		} else {
 			var lastMediaItemOfNextFolder *photos.MediaItem = nil
@@ -121,41 +109,24 @@ func main() {
 			}
 			if lastMediaItemOfNextFolder == nil {
 				log.Fatalln("Got no first pic of next folder for folder")
-			} else {
-				afterMediaID := lastMediaItemOfNextFolder.ID
-				if afterMediaID == "" {
-					log.Fatalln("Got empty media id for: " + lastMediaItemOfNextFolder.Filename)
-				}
-				// retry loop
-				// TODO: See if this can be made generic on all requests
-				for sleepSeconds := 1; ; sleepSeconds *= 2 {
-					if sleepSeconds > 10 {
-						sleepSeconds = 10
-					}
-					fmt.Printf(
-						"Adding '%s' after '%s' (last pic of folder '%s') \n",
-						labelText,
-						lastMediaItemOfNextFolder.Filename,
-						nextFolderPath[len(rootPicturesDir):len(nextFolderPath)-1],
-					)
-					if !createLabels {
-						break
-					}
-					response, err := client.AddTextEnrichmentToAlbum(album.ID, afterMediaID, labelText)
-					if err != nil {
-						log.Fatal(err)
-					}
-					if response.Error == nil {
-						break
-					}
-					if response.Error.Status != "RESOURCE_EXHAUSTED" {
-						log.Printf("got error that's we're okay with?: %s - %s\n", response.Error.Message, response.Error.Status)
-						break
-					}
-					// this means we need to retry after some time
-					log.Println("Hit API Quota Limit, retrying after a short sleep...")
-					time.Sleep(time.Duration(sleepSeconds) * time.Second)
-				}
+			}
+
+			afterMediaID := lastMediaItemOfNextFolder.ID
+			if afterMediaID == "" {
+				log.Fatalln("Got empty media id for: " + lastMediaItemOfNextFolder.Filename)
+			}
+			fmt.Printf(
+				"Adding '%s' after '%s' (last pic of folder '%s') \n",
+				labelText,
+				lastMediaItemOfNextFolder.Filename,
+				nextFolderPath,
+			)
+			if !createLabels {
+				break
+			}
+			_, err := client.AddTextEnrichmentToAlbum(album.ID, lastMediaItemOfNextFolder, labelText)
+			if err != nil {
+				log.Fatal(err)
 			}
 		}
 	}
@@ -198,8 +169,8 @@ func getTopLevelFolderInfoForLabelling(
 
 		filesNamesInDir := files.GetAllFileNamesInDir(
 			fullPathWithRoot,
-			folderDenyRegexs[:],
-			folderAllowRegexs[:],
+			FOLDER_DENY_REGEXS[:],
+			FOLDER_ALLOW_REGEXS[:],
 		)
 
 		highestIndexInAlbum := -1

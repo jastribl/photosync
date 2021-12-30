@@ -1,11 +1,11 @@
 package photos
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 )
 
 type RequestAlbum struct {
@@ -22,16 +22,19 @@ func (m *Client) CreateAlbum(title string) (*Album, error) {
 			Title: title,
 		},
 	}
-	var album Album
-	err := m.postJson("https://photoslibrary.googleapis.com/v1/albums", createRequest, &album)
+	response := &Album{}
+	err := m.postJson(
+		"https://photoslibrary.googleapis.com/v1/albums",
+		createRequest,
+		response,
+	)
 	if err != nil {
 		return nil, err
 	}
-	return &album, nil
+	return response, nil
 }
 
-// GetAlbums gets albums
-func (m *Client) GetAlbums(pageToken string) (*Albums, error) {
+func (m *Client) getAlbums(pageToken string) (*Albums, error) {
 	pageTokenPart := ""
 	if pageToken != "" {
 		pageTokenPart = fmt.Sprintf("&pageToken=%s", pageToken)
@@ -51,12 +54,11 @@ func (m *Client) GetAlbums(pageToken string) (*Albums, error) {
 	return d, err
 }
 
-// GetAllAlbums gets all albums
 func (m *Client) GetAllAlbums() ([]*Album, error) {
 	var allAlbums []*Album
 	lastPageToken := ""
 	for {
-		albums, err := m.GetAlbums(lastPageToken)
+		albums, err := m.getAlbums(lastPageToken)
 		if err != nil {
 			return nil, err
 		}
@@ -70,41 +72,6 @@ func (m *Client) GetAllAlbums() ([]*Album, error) {
 	return allAlbums, nil
 }
 
-type MediaItemsListPostStruct struct {
-	MediaItemIDs []string `json:"mediaItemIds"`
-}
-
-func (m *Client) AddMediaItemsToAlbum(albumID string, mediaItems []*MediaItem) error {
-	mediaItemIDs := []string{}
-	for _, item := range mediaItems {
-		mediaItemIDs = append(mediaItemIDs, item.ID)
-	}
-	postStruct := MediaItemsListPostStruct{
-		MediaItemIDs: mediaItemIDs,
-	}
-	jsonStr, err := json.Marshal(postStruct)
-	if err != nil {
-		return err
-	}
-	url := fmt.Sprintf(
-		"https://photoslibrary.googleapis.com/v1/albums/%s:batchAddMediaItems",
-		albumID,
-	)
-	resp, err := m.httpClient.Post(url, "application/json", bytes.NewBuffer(jsonStr))
-	if err != nil {
-		return err
-	}
-	var target map[string]interface{}
-	defer resp.Body.Close()
-
-	err = json.NewDecoder(resp.Body).Decode(&target)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// GetAlbumWithTitleContains returns the album with the title containing
 func (m *Client) GetAlbumWithTitleContains(title string) (*Album, error) {
 	albums, err := m.GetAllAlbums()
 	if err != nil {
@@ -161,45 +128,56 @@ type AddEnrichmentToAlbumRequest struct {
 }
 
 func (m *Client) AddTextEnrichmentToAlbum(
-	albumID, afterMediaId, text string,
+	albumID string,
+	afterMediaItem *MediaItem,
+	labelText string,
 ) (*AddEnrichmentResponse, error) {
 	var position string
-	if afterMediaId == "" {
+	if afterMediaItem == nil {
 		position = "FIRST_IN_ALBUM"
 	} else {
 		position = "AFTER_MEDIA_ITEM"
 	}
-	jsonStr, err := json.Marshal(&AddEnrichmentToAlbumRequest{
-		NewEnrichmentItem: &NewEnrichmentItem{
-			TextEnrichment: &TextEnrichment{
-				Text: text,
+
+	for sleepSeconds := 1; ; sleepSeconds *= 2 {
+		if sleepSeconds > 10 {
+			sleepSeconds = 10
+		}
+		response := &AddEnrichmentResponse{}
+		err := m.postJson(
+			fmt.Sprintf("https://photoslibrary.googleapis.com/v1/albums/%s:addEnrichment", albumID),
+			AddEnrichmentToAlbumRequest{
+				NewEnrichmentItem: &NewEnrichmentItem{
+					TextEnrichment: &TextEnrichment{
+						Text: labelText,
+					},
+				},
+				AlbumPosition: &AlbumPosition{
+					Position:            position,
+					RelativeMediaItemId: afterMediaItem.ID,
+				},
 			},
-		},
-		AlbumPosition: &AlbumPosition{
-			Position:            position,
-			RelativeMediaItemId: afterMediaId,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-	url := fmt.Sprintf(
-		"https://photoslibrary.googleapis.com/v1/albums/%s:addEnrichment",
-		albumID,
-	)
-	resp, err := m.httpClient.Post(url, "application/json", bytes.NewBuffer(jsonStr))
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	response := &AddEnrichmentResponse{}
-	err = json.NewDecoder(resp.Body).Decode(response)
-	if err != nil {
-		log.Fatal(err)
-	}
+			response,
+		)
+		if err != nil {
+			return nil, err
+		}
+		if response.Error == nil {
+			return response, nil
+		}
+		if response.Error.Status == "RESOURCE_EXHAUSTED" {
+			// this means we need to retry after some time
+			log.Println("Hit API Quota Limit, retrying after a short sleep...")
+			time.Sleep(time.Duration(sleepSeconds) * time.Second)
+			continue
+		}
 
-	return response, nil
-
+		return nil, fmt.Errorf(
+			"got an error other than resource exhausted: %s - %s",
+			response.Error.Message,
+			response.Error.Status,
+		)
+	}
 }
 
 type EnrichmentItem struct {
