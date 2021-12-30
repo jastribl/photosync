@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+var FILE_NAME_REPLACEMENTS = [...]struct{ A, B string }{
+	{".heic", ".jpg"},
+	{".jpg", ".heic"},
+}
+
 func GetAllLowercaseFilenamesInDir(
 	rootDir string,
 	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,

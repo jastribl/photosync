@@ -81,12 +81,8 @@ MEDIA_ITEM_LOOP:
 		}
 
 		// Check the same but for replaced filenames
-		filenameReplacements := []struct{ a, b string }{
-			{".heic", ".jpg"},
-			{".jpg", ".heic"},
-		}
-		for _, pair := range filenameReplacements {
-			if _, ok := allDriveLowercaseFilenamesMap[strings.ReplaceAll(filenameLowerCase, pair.a, pair.b)]; ok {
+		for _, pair := range files.FILE_NAME_REPLACEMENTS {
+			if _, ok := allDriveLowercaseFilenamesMap[strings.ReplaceAll(filenameLowerCase, pair.A, pair.B)]; ok {
 				continue MEDIA_ITEM_LOOP
 			}
 		}

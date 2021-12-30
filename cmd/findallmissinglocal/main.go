@@ -46,12 +46,6 @@ func main() {
 		}
 	}
 
-	// todo: make these constants
-	filenameReplacements := []struct{ a, b string }{
-		{".heic", ".jpg"},
-		{".jpg", ".heic"},
-	}
-
 	// util function to check the map and decrement
 	checkAndRemoveFilenameFromMap := func(key string) bool {
 		numLeft, found := allLocalLowercaseFilenamesMap[key]
@@ -73,8 +67,8 @@ MEDIA_ITEM_LOOP:
 			continue
 		}
 
-		for _, pair := range filenameReplacements {
-			replacementString := strings.ReplaceAll(lowercaseFilename, pair.a, pair.b)
+		for _, pair := range files.FILE_NAME_REPLACEMENTS {
+			replacementString := strings.ReplaceAll(lowercaseFilename, pair.A, pair.B)
 			if checkAndRemoveFilenameFromMap(replacementString) {
 				continue MEDIA_ITEM_LOOP
 			}
