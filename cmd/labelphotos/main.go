@@ -142,9 +142,9 @@ func getTopLevelFolderInfoForLabelling(
 		log.Fatal(err)
 	}
 
-	lowerCaseFileNameToIndexInAlbum := map[string]int{}
+	lowercaseFilenameToIndexInAlbum := map[string]int{}
 	for i, item := range mediaItems {
-		lowerCaseFileNameToIndexInAlbum[strings.ToLower(item.Filename)] = i
+		lowercaseFilenameToIndexInAlbum[strings.ToLower(item.Filename)] = i
 	}
 
 	// Find all top level files and assert they are all topLevelDirs
@@ -167,7 +167,7 @@ func getTopLevelFolderInfoForLabelling(
 			continue
 		}
 
-		filesNamesInDir := files.GetAllFileNamesInDir(
+		filesNamesInDir := files.GetAllFilenamesInDir(
 			fullPathWithRoot,
 			FOLDER_DENY_REGEXS[:],
 			FOLDER_ALLOW_REGEXS[:],
@@ -175,8 +175,8 @@ func getTopLevelFolderInfoForLabelling(
 
 		highestIndexInAlbum := -1
 		for _, filename := range filesNamesInDir {
-			lowerCaseFilename := strings.ToLower(filename)
-			indexInAlbum, foundFile := lowerCaseFileNameToIndexInAlbum[lowerCaseFilename]
+			lowercaseFilename := strings.ToLower(filename)
+			indexInAlbum, foundFile := lowercaseFilenameToIndexInAlbum[lowercaseFilename]
 			if foundFile && (highestIndexInAlbum == -1 || indexInAlbum > highestIndexInAlbum) {
 				highestIndexInAlbum = indexInAlbum
 			}

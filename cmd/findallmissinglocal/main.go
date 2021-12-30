@@ -26,33 +26,32 @@ func main() {
 		log.Fatal(err)
 	}
 
-	allLocalFileNamesMap := files.GetAllFileNamesInDirAsMap(
+	allLocalFilenamesMap := files.GetAllFilenamesInDirAsMap(
 		cfg.RootPicturesDir,
 		[]*regexp.Regexp{},
 		[]*regexp.Regexp{},
 	)
 	allLocalFilesLowerCaseMap := map[string]int{}
-	for fileName, count := range allLocalFileNamesMap {
-		// log.Printf("adding to map: %s\n", strings.ToLower(fileName))
-		allLocalFilesLowerCaseMap[strings.ToLower(fileName)] = count
+	for filename, count := range allLocalFilenamesMap {
+		allLocalFilesLowerCaseMap[strings.ToLower(filename)] = count
 	}
 
 	allPhotosMediaItems, err := client.GetAllMediaItemsWithCache()
 	if err != nil {
 		log.Fatal(err)
 	}
-	lowerCaseFileNameToProductUrls := map[string][]string{}
+	lowercaseFilenameToProductUrls := map[string][]string{}
 	for _, mediaItem := range allPhotosMediaItems {
-		lowerCaseFileName := strings.ToLower(mediaItem.Filename)
-		if productUrlsFound, found := lowerCaseFileNameToProductUrls[lowerCaseFileName]; found {
-			lowerCaseFileNameToProductUrls[lowerCaseFileName] = append(productUrlsFound, mediaItem.ProductULR)
+		lowercaseFilename := strings.ToLower(mediaItem.Filename)
+		if productUrlsFound, found := lowercaseFilenameToProductUrls[lowercaseFilename]; found {
+			lowercaseFilenameToProductUrls[lowercaseFilename] = append(productUrlsFound, mediaItem.ProductULR)
 		} else {
-			lowerCaseFileNameToProductUrls[lowerCaseFileName] = []string{mediaItem.ProductULR}
+			lowercaseFilenameToProductUrls[lowercaseFilename] = []string{mediaItem.ProductULR}
 		}
 	}
 
 	// todo: make these constants
-	fileNameReplacements := []struct{ a, b string }{
+	filenameReplacements := []struct{ a, b string }{
 		{".heic", ".jpg"},
 		{".jpg", ".heic"},
 	}
@@ -73,24 +72,24 @@ func main() {
 
 MEDIA_ITEM_LOOP:
 	for _, mediaItem := range allPhotosMediaItems {
-		lowerCaseFileName := strings.ToLower(mediaItem.Filename)
-		if checkAndRemoveFilenameFromMap(lowerCaseFileName) {
+		lowercaseFilename := strings.ToLower(mediaItem.Filename)
+		if checkAndRemoveFilenameFromMap(lowercaseFilename) {
 			continue
 		}
 
-		for _, pair := range fileNameReplacements {
-			replacementString := strings.ReplaceAll(lowerCaseFileName, pair.a, pair.b)
+		for _, pair := range filenameReplacements {
+			replacementString := strings.ReplaceAll(lowercaseFilename, pair.a, pair.b)
 			if checkAndRemoveFilenameFromMap(replacementString) {
 				continue MEDIA_ITEM_LOOP
 			}
 		}
 
-		for i, productUrl := range lowerCaseFileNameToProductUrls[lowerCaseFileName] {
+		for i, productUrl := range lowercaseFilenameToProductUrls[lowercaseFilename] {
 			fmt.Printf(
 				"Missing locally one of: (%d) (%s) (%s): %s\n",
 				i,
 				mediaItem.MediaMetadata.CreationTime,
-				lowerCaseFileName,
+				lowercaseFilename,
 				productUrl,
 			)
 		}

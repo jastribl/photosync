@@ -31,7 +31,7 @@ func main() {
 	fmt.Println("Running for the following input")
 	fmt.Println("Root picture dir: '" + rootPicturesDir + "'")
 
-	allLocalFileNames := files.GetAllFileNamesInDir(
+	allLocalFilenames := files.GetAllFilenamesInDir(
 		rootPicturesDir,
 		[]*regexp.Regexp{
 			regexp.MustCompile(".*[pP]ictures [fF]rom .*$"),
@@ -47,25 +47,25 @@ func main() {
 
 	allPhotosLowerCaseFilenamesToMedia := map[string][]*photos.MediaItem{}
 	for _, mediaItem := range allPhotosMediaItems {
-		lowerCaseFileName := strings.ToLower(mediaItem.Filename)
-		if list, ok := allPhotosLowerCaseFilenamesToMedia[lowerCaseFileName]; ok {
-			allPhotosLowerCaseFilenamesToMedia[lowerCaseFileName] = append(list, mediaItem)
+		lowercaseFilename := strings.ToLower(mediaItem.Filename)
+		if list, ok := allPhotosLowerCaseFilenamesToMedia[lowercaseFilename]; ok {
+			allPhotosLowerCaseFilenamesToMedia[lowercaseFilename] = append(list, mediaItem)
 		} else {
-			allPhotosLowerCaseFilenamesToMedia[lowerCaseFileName] = []*photos.MediaItem{mediaItem}
+			allPhotosLowerCaseFilenamesToMedia[lowercaseFilename] = []*photos.MediaItem{mediaItem}
 		}
 	}
 
-	for _, localFilename := range allLocalFileNames {
-		lowerCaseLocalFilename := strings.ToLower(localFilename)
-		if items, ok := allPhotosLowerCaseFilenamesToMedia[lowerCaseLocalFilename]; ok {
+	for _, localFilename := range allLocalFilenames {
+		lowercaseLocalFilename := strings.ToLower(localFilename)
+		if items, ok := allPhotosLowerCaseFilenamesToMedia[lowercaseLocalFilename]; ok {
 			if len(items) > 1 {
-				fmt.Printf("Found multiple media (%d) for filename %s\n", len(items), lowerCaseLocalFilename)
+				fmt.Printf("Found multiple media (%d) for filename %s\n", len(items), lowercaseLocalFilename)
 				for i, item := range items {
 					log.Printf("Item %d: %s\n", i, item.ProductULR)
 				}
 			}
 		} else {
-			fmt.Printf("Photos missing: %s\n", lowerCaseLocalFilename)
+			fmt.Printf("Photos missing: %s\n", lowercaseLocalFilename)
 		}
 	}
 }

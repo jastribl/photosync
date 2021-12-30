@@ -27,14 +27,14 @@ func main() {
 	}
 
 	rootPicturesDir := cfg.RootPicturesDir
-	allFileNames := files.GetAllFileNamesInDirAsMap(
+	allFilenames := files.GetAllFilenamesInDirAsMap(
 		rootPicturesDir,
 		cfg.PicturePathRegexsToIgnore,
 		[]*regexp.Regexp{},
 	)
 	allFilenamesLowerCaseMap := map[string]int{}
-	for fileName, count := range allFileNames {
-		allFilenamesLowerCaseMap[strings.ToLower(fileName)] = count
+	for filename, count := range allFilenames {
+		allFilenamesLowerCaseMap[strings.ToLower(filename)] = count
 	}
 
 	mediaItmes, err := client.GetAllMediaItemsWithCache()
@@ -46,7 +46,6 @@ func main() {
 
 	for _, mediaItem := range mediaItmes {
 		filename := mediaItem.Filename
-		// todo: maybe check the numbers returned here
 		_, found := allFilenamesLowerCaseMap[strings.ToLower(filename)]
 		if !found {
 			timeOfImage, err := time.Parse(

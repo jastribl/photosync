@@ -7,7 +7,7 @@ import (
 	"regexp"
 )
 
-func GetAllFileNamesInDir(
+func GetAllFilenamesInDir(
 	rootDir string,
 	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
 ) []string {
@@ -41,21 +41,21 @@ func GetAllFileNamesInDir(
 }
 
 // todo: change to lower case maybe?
-func GetAllFileNamesInDirAsMap(
+func GetAllFilenamesInDirAsMap(
 	rootDir string,
 	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
 ) map[string]int {
-	allDriveFileNamesArr := GetAllFileNamesInDir(
+	allDriveFilenamesArr := GetAllFilenamesInDir(
 		rootDir,
 		folderDenyRegexs,
 		folderAllowRegexs,
 	)
 	toReturn := map[string]int{}
-	for _, fileName := range allDriveFileNamesArr {
-		if _, hasKey := toReturn[fileName]; hasKey {
-			toReturn[fileName] = toReturn[fileName] + 1
+	for _, filename := range allDriveFilenamesArr {
+		if _, hasKey := toReturn[filename]; hasKey {
+			toReturn[filename] = toReturn[filename] + 1
 		} else {
-			toReturn[fileName] = 1
+			toReturn[filename] = 1
 		}
 	}
 	return toReturn

@@ -34,7 +34,7 @@ func main() {
 	fmt.Println("Album Name: '" + albumName + "'")
 
 	log.Println("Getting all drive filenames")
-	allDriveFileNames := files.GetAllFileNamesInDirAsMap(
+	allDriveFilenames := files.GetAllFilenamesInDirAsMap(
 		rootPicturesDir,
 		// 2021
 		[]*regexp.Regexp{ // FOLDER_DENY_REGEXS
@@ -47,8 +47,8 @@ func main() {
 		},
 	)
 	allDriveLowercaseFilenamesMap := map[string]int{}
-	for fileName, numberOfThatFile := range allDriveFileNames {
-		allDriveLowercaseFilenamesMap[strings.ToLower(fileName)] = numberOfThatFile
+	for filename, numberOfThatFile := range allDriveFilenames {
+		allDriveLowercaseFilenamesMap[strings.ToLower(filename)] = numberOfThatFile
 	}
 
 	log.Println("Getting album")
@@ -65,7 +65,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	allAlbumFileNamesLowerCaseToMediaItems := mediaItemsToLowercaseFilenameMap(albumMediaItems)
+	allAlbumFilenamesLowerCaseToMediaItems := mediaItemsToLowercaseFilenameMap(albumMediaItems)
 
 	log.Println("Getting all media items")
 	allMediaItems, err := client.GetAllMediaItemsWithCache()
@@ -76,21 +76,21 @@ func main() {
 
 	numExtra := 0
 MEDIA_ITEM_LOOP:
-	for fileNameLowerCase, mediaItems := range allAlbumFileNamesLowerCaseToMediaItems {
-		fileNameLowerCase = strings.ToLower(fileNameLowerCase)
+	for filenameLowerCase, mediaItems := range allAlbumFilenamesLowerCaseToMediaItems {
+		filenameLowerCase = strings.ToLower(filenameLowerCase)
 
 		// Check if filename is in drive folder already
-		if _, ok := allDriveLowercaseFilenamesMap[fileNameLowerCase]; ok {
+		if _, ok := allDriveLowercaseFilenamesMap[filenameLowerCase]; ok {
 			continue
 		}
 
 		// Check the same but for replaced filenames
-		fileNameReplacements := []struct{ a, b string }{
+		filenameReplacements := []struct{ a, b string }{
 			{".heic", ".jpg"},
 			{".jpg", ".heic"},
 		}
-		for _, pair := range fileNameReplacements {
-			if _, ok := allDriveLowercaseFilenamesMap[strings.ReplaceAll(fileNameLowerCase, pair.a, pair.b)]; ok {
+		for _, pair := range filenameReplacements {
+			if _, ok := allDriveLowercaseFilenamesMap[strings.ReplaceAll(filenameLowerCase, pair.a, pair.b)]; ok {
 				continue MEDIA_ITEM_LOOP
 			}
 		}
@@ -101,7 +101,7 @@ MEDIA_ITEM_LOOP:
 				"Photos extra file (date: %s) (%d): %s - %s\n",
 				mediaItem.MediaMetadata.CreationTime,
 				i,
-				fileNameLowerCase,
+				filenameLowerCase,
 				mediaItem.ProductULR,
 			)
 		}
@@ -109,31 +109,31 @@ MEDIA_ITEM_LOOP:
 	}
 
 	numMissing := 0
-	for fileNameLowerCase := range allDriveLowercaseFilenamesMap {
-		fileNameLowerCaseHEIC := strings.ReplaceAll(fileNameLowerCase, ".jpg", ".heic")
+	for filenameLowerCase := range allDriveLowercaseFilenamesMap {
+		filenameLowerCaseHEIC := strings.ReplaceAll(filenameLowerCase, ".jpg", ".heic")
 		// Check if the Google Photos album contains the file
-		if _, ok := allAlbumFileNamesLowerCaseToMediaItems[fileNameLowerCase]; ok {
+		if _, ok := allAlbumFilenamesLowerCaseToMediaItems[filenameLowerCase]; ok {
 			continue
 		}
 
 		// Also check with swapping extension
-		if _, ok := allAlbumFileNamesLowerCaseToMediaItems[fileNameLowerCaseHEIC]; ok {
+		if _, ok := allAlbumFilenamesLowerCaseToMediaItems[filenameLowerCaseHEIC]; ok {
 			continue
 		}
 
-		if mediaItems, ok := allMediaItemLowerCaseFilenamesToMediaItems[fileNameLowerCase]; ok {
+		if mediaItems, ok := allMediaItemLowerCaseFilenamesToMediaItems[filenameLowerCase]; ok {
 			// Check if we have a media item for this file name - if so print that out so we can add it
 			for i, mediaItem := range mediaItems {
-				fmt.Printf("Link to missing in Photos: (%s) (%d): %s\n", fileNameLowerCase, i, mediaItem.ProductULR)
+				fmt.Printf("Link to missing in Photos: (%s) (%d): %s\n", filenameLowerCase, i, mediaItem.ProductULR)
 			}
-		} else if mediaItems, ok := allMediaItemLowerCaseFilenamesToMediaItems[fileNameLowerCaseHEIC]; ok {
+		} else if mediaItems, ok := allMediaItemLowerCaseFilenamesToMediaItems[filenameLowerCaseHEIC]; ok {
 			// Check for the same thing but with extensions swapped
 			for i, mediaItem := range mediaItems {
-				fmt.Printf("Link to missing in Photos: (%s) (%d): %s\n", fileNameLowerCaseHEIC, i, mediaItem.ProductULR)
+				fmt.Printf("Link to missing in Photos: (%s) (%d): %s\n", filenameLowerCaseHEIC, i, mediaItem.ProductULR)
 			}
 		} else {
 			// Otherwise we're missing the file and don't know where to find it
-			fmt.Printf("Google Photos missing file: (%s)\n", fileNameLowerCase)
+			fmt.Printf("Google Photos missing file: (%s)\n", filenameLowerCase)
 		}
 		numMissing += 1
 	}
@@ -143,15 +143,15 @@ MEDIA_ITEM_LOOP:
 }
 
 func mediaItemsToLowercaseFilenameMap(mediaItems []*photos.MediaItem) map[string][]*photos.MediaItem {
-	lowerCaseFilenamesToMediaItems := map[string][]*photos.MediaItem{}
+	lowercaseFilenamesToMediaItems := map[string][]*photos.MediaItem{}
 	for _, item := range mediaItems {
 		lowerFilename := strings.ToLower(item.Filename)
-		if list, ok := lowerCaseFilenamesToMediaItems[lowerFilename]; ok {
-			lowerCaseFilenamesToMediaItems[lowerFilename] = append(list, item)
+		if list, ok := lowercaseFilenamesToMediaItems[lowerFilename]; ok {
+			lowercaseFilenamesToMediaItems[lowerFilename] = append(list, item)
 		} else {
-			lowerCaseFilenamesToMediaItems[lowerFilename] = []*photos.MediaItem{item}
+			lowercaseFilenamesToMediaItems[lowerFilename] = []*photos.MediaItem{item}
 		}
 	}
 
-	return lowerCaseFilenamesToMediaItems
+	return lowercaseFilenamesToMediaItems
 }
