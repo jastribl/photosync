@@ -69,6 +69,7 @@ func (m *Client) GetAllMediaItemsWithCache() ([]*MediaItem, error) {
 	return allMediaItems, err
 }
 
+// todo: remove this function since it's doesn't work anymore
 func (m *Client) GetAllLowercaseFilenameToMediaItemMapWithCache() (map[string][]*MediaItem, error) {
 	allMediaItems, err := m.GetAllMediaItemsWithCache()
 	if err != nil {

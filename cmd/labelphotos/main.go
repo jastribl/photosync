@@ -151,6 +151,7 @@ func main() {
 	}
 }
 
+// todo: make this a util
 func yesNo(q string) bool {
 	reader := bufio.NewReader(os.Stdin)
 	for {
