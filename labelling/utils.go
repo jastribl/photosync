@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/jastribl/photosync/files"
@@ -50,17 +51,16 @@ func ShouldIgnoreFolder(folderName string) bool {
 func GetTopLevelFolderInfo(
 	rootDir string,
 	client *photos.Client,
-	album *photos.Album,
+	allMediaItems []*photos.MediaItem,
 ) []*FolderInfo {
-	albumMediaItems, err := client.GetAllMediaItemsForAlbum(album)
-	if err != nil {
-		log.Fatal(err)
-	}
+	sort.Slice(allMediaItems, func(i, j int) bool {
+		return allMediaItems[i].MediaMetadata.CreationTime > allMediaItems[j].MediaMetadata.CreationTime
+	})
 
-	lowercaseFilenameToAlbumMediaMap := photos.MediaItemsToLowercaseFilenameMap(albumMediaItems)
+	lowercaseFilenameToAlbumMediaMap := photos.MediaItemsToLowercaseFilenameMap(allMediaItems)
 
 	lowercaseFilenameToIndexInAlbum := map[string]int{}
-	for i, item := range albumMediaItems {
+	for i, item := range allMediaItems {
 		lowercaseFilenameToIndexInAlbum[strings.ToLower(item.Filename)] = i
 	}
 
@@ -108,7 +108,7 @@ func GetTopLevelFolderInfo(
 			NumMediaItems: numMediaItemsInDir,
 		}
 		if highestIndexInAlbum != -1 {
-			folderInfo.LastMediaItem = albumMediaItems[highestIndexInAlbum]
+			folderInfo.LastMediaItem = allMediaItems[highestIndexInAlbum]
 		}
 		listOfFolderInfo = append(listOfFolderInfo, folderInfo)
 	}

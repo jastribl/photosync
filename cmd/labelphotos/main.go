@@ -1,14 +1,20 @@
 package main
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/jastribl/photosync/config"
 	"github.com/jastribl/photosync/labelling"
 	"github.com/jastribl/photosync/photos"
 )
+
+const savedSessionCacheFile = "cache/savedSessionID.txt"
 
 func main() {
 	// Setup logging
@@ -34,6 +40,45 @@ func main() {
 	fmt.Println("Running for the following input")
 	fmt.Println("Root picture dir: '" + rootPicturesDir + "'")
 
+	var pickerSessionID string
+	_, err = os.Stat(savedSessionCacheFile)
+	cacheDoesNotExist := errors.Is(err, os.ErrNotExist)
+	if cacheDoesNotExist || !yesNo("Would you like to re-use your previous picker session?") {
+		pickerSession, err := client.NewPickerSession()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		pickerSession, err = client.WaitForSession(pickerSession)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		pickerSessionID = pickerSession.ID
+		f, err := os.Create(savedSessionCacheFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+		w := bufio.NewWriter(f)
+		w.WriteString(pickerSessionID)
+		w.Flush()
+	} else if !cacheDoesNotExist {
+		// here we know we failed the top condition because we wanted to use the cache
+		out, err := ioutil.ReadFile(savedSessionCacheFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pickerSessionID = string(out)
+	}
+
+	log.Printf("About to fetch media items from session %s", pickerSessionID)
+	mediaItems, err := client.GetAllMediaItemsForSessionID(pickerSessionID)
+	// mediaItems, err := client.GetAllMediaItemsForSessionID("d8671d27-fe5f-47c1-924a-7e2682b12741")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	album, err := client.GetAlbumWithTitle(albumName)
 	if err != nil {
 		log.Fatal(err)
@@ -42,7 +87,7 @@ func main() {
 		log.Fatalln("Album not found with name '" + albumName + "'")
 	}
 
-	listOfFolderInfo := labelling.GetTopLevelFolderInfo(rootPicturesDir, client, album)
+	listOfFolderInfo := labelling.GetTopLevelFolderInfo(rootPicturesDir, client, mediaItems)
 
 	for i, folderInfo := range listOfFolderInfo {
 		if folderInfo.NumMediaItems == 0 {
@@ -102,6 +147,26 @@ func main() {
 		_, err := client.AddTextEnrichmentToAlbum(album.ID, nil, labelText)
 		if err != nil {
 			log.Fatal(err)
+		}
+	}
+}
+
+func yesNo(q string) bool {
+	reader := bufio.NewReader(os.Stdin)
+	for {
+
+		fmt.Printf("%s[Y]es|[N]o?", q)
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		response = strings.ToLower(strings.TrimSpace(response))
+
+		if response == "y" || response == "yes" {
+			return true
+		} else if response == "n" || response == "no" {
+			return false
 		}
 	}
 }

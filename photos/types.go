@@ -1,5 +1,7 @@
 package photos
 
+import "time"
+
 // VideoProcessingStatus is an enum for video processing status
 type VideoProcessingStatus string
 
@@ -66,6 +68,57 @@ type MediaItems struct {
 	Error         *ErrorResponse `json:"error"`
 }
 
+type PickedMediaItems struct {
+	MediaItems    []*PickedMediaItem `json:"mediaItems"`
+	NextPageToken string             `json:"nextPageToken"`
+}
+
+type PickedMediaItem struct {
+	ID         string        `json:"id"`
+	CreateTime string        `json:"createTime"`
+	Type       MediaFileEnum `json:"type"`
+	MediaFile  MediaFile     `json:"mediaFile"`
+}
+
+type MediaFileEnum string
+
+const (
+	// UNSPECIFIED means unspecified
+	TYPE_UNSPECIFIED MediaFileEnum = "TYPE_UNSPECIFIED"
+	// PROCESSING means processing
+	PHOTO MediaFileEnum = "PHOTO"
+	// READY means ready
+	VIDEO MediaFileEnum = "VIDEO"
+)
+
+type MediaFile struct {
+	BaseUrl           string
+	MimeType          string
+	Filename          string
+	MediaFileMetadata MediaFileMetadata
+}
+
+type MediaFileMetadata struct {
+	Width         int
+	height        int
+	CameraMake    string
+	CameraModel   string
+	PhotoMetadata PhotoMetadata
+	VideoMetadata VideoMetadata
+}
+
+type PhotoMetadata struct {
+	FocalLength     float32
+	ApertureFNumber float32
+	IsoEquivalent   int
+	ExposureTime    string
+}
+
+type VideoMetadata struct {
+	Fps              float32
+	ProcessingStatus VideoProcessingStatus
+}
+
 type SharedAlbumOptions struct {
 	IsCollaborative bool `json:"isCollaborative"`
 	IsCommentable   bool `json:"isCommentable"`
@@ -94,4 +147,22 @@ type Album struct {
 type Albums struct {
 	Albums        []*Album `json:"albums"`
 	NextPageToken string   `json:"nextPageToken"`
+}
+
+type PickerSessionRequest struct {
+	RequestId string `json:"requestId,omitempty"`
+}
+
+type PollingConfig struct {
+	PollInterval string `json:"pollInterval"`
+	TimeoutIn    string `json:"timeoutIn"`
+}
+
+type PickerSession struct {
+	ID            string        `json:"id"`
+	PickerURI     string        `json:"pickerUri"`
+	PollingURI    string        `json:"-"`
+	PollingConfig PollingConfig `json:"pollingConfig"`
+	ExpireTime    time.Time     `json:"expireTime"`
+	MediaItemsSet bool          `json:"mediaItemsSet"`
 }

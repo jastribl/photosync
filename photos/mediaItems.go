@@ -123,6 +123,61 @@ func (m *Client) getMediaItems(pageToken string) (*MediaItems, error) {
 	return d, err
 }
 
+func (m *Client) GetMediaItemsFromSession(sessionID, pageToken string) (*MediaItems, error) {
+	otherParams := ""
+	if pageToken != "" {
+		otherParams += fmt.Sprintf("&pageToken=%s", pageToken)
+	}
+
+	resp, err := m.httpClient.Get(fmt.Sprintf(
+		"https://photospicker.googleapis.com/v1/mediaItems?pageSize=100&sessionId=%s%s",
+		sessionID,
+		otherParams,
+	))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	d := &PickedMediaItems{}
+	err = json.NewDecoder(resp.Body).Decode(d)
+	if err != nil {
+		return nil, err
+	}
+	var mediaItems []*MediaItem
+	for _, pickedMediaItem := range d.MediaItems {
+		mediaItems = append(mediaItems, &MediaItem{
+			ID:       pickedMediaItem.ID,
+			Filename: pickedMediaItem.MediaFile.Filename,
+			MediaMetadata: MediaMetadata{
+				CreationTime: pickedMediaItem.CreateTime,
+			},
+		})
+	}
+	return &MediaItems{
+		MediaItems:    mediaItems,
+		NextPageToken: d.NextPageToken,
+	}, nil
+}
+
+func (m *Client) GetAllMediaItemsForSessionID(sessionID string) ([]*MediaItem, error) {
+	var allMediaItems []*MediaItem
+	lastPageToken := ""
+	for {
+		mediaItems, err := m.GetMediaItemsFromSession(sessionID, lastPageToken)
+		if err != nil {
+			return nil, err
+		}
+		allMediaItems = append(allMediaItems, mediaItems.MediaItems...)
+		lastPageToken = mediaItems.NextPageToken
+		if lastPageToken == "" {
+			break
+		}
+	}
+
+	return allMediaItems, nil
+}
+
 type SearchRequest struct {
 	PageSize  int    `json:"pageSize"`
 	PageToken string `json:"pageToken"`
