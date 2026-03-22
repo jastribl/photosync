@@ -3,13 +3,13 @@ package main
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
 	"strings"
 
+	utils "github.com/jastribl/photosync/cmd"
 	"github.com/jastribl/photosync/config"
 	"github.com/jastribl/photosync/files"
 	"github.com/jastribl/photosync/photos"
@@ -43,7 +43,7 @@ func main() {
 	var pickerSessionID string
 	_, err = os.Stat(savedSessionCacheFile)
 	cacheDoesNotExist := errors.Is(err, os.ErrNotExist)
-	if cacheDoesNotExist || !yesNo("Would you like to re-use your previous picker session?") {
+	if cacheDoesNotExist || !utils.YesNo("Would you like to re-use your previous picker session?") {
 		pickerSession, err := client.NewPickerSession()
 		if err != nil {
 			log.Fatal(err)
@@ -113,26 +113,5 @@ func main() {
 		}
 
 		log.Printf("Unable to find Google drive photo '%s', leaving untouched\n", filename)
-	}
-}
-
-// todo: make this a util
-func yesNo(q string) bool {
-	reader := bufio.NewReader(os.Stdin)
-	for {
-
-		fmt.Printf("%s[Y]es|[N]o?", q)
-		response, err := reader.ReadString('\n')
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		response = strings.ToLower(strings.TrimSpace(response))
-
-		if response == "y" || response == "yes" {
-			return true
-		} else if response == "n" || response == "no" {
-			return false
-		}
 	}
 }

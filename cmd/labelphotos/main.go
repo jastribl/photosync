@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 
+	"github.com/jastribl/photosync/cmd/utils"
 	"github.com/jastribl/photosync/config"
 	"github.com/jastribl/photosync/labelling"
 	"github.com/jastribl/photosync/photos"
@@ -43,7 +43,7 @@ func main() {
 	var pickerSessionID string
 	_, err = os.Stat(savedSessionCacheFile)
 	cacheDoesNotExist := errors.Is(err, os.ErrNotExist)
-	if cacheDoesNotExist || !yesNo("Would you like to re-use your previous picker session?") {
+	if cacheDoesNotExist || !utils.YesNo("Would you like to re-use your previous picker session?") {
 		pickerSession, err := client.NewPickerSession()
 		if err != nil {
 			log.Fatal(err)
@@ -147,27 +147,6 @@ func main() {
 		_, err := client.AddTextEnrichmentToAlbum(album.ID, nil, labelText)
 		if err != nil {
 			log.Fatal(err)
-		}
-	}
-}
-
-// todo: make this a util
-func yesNo(q string) bool {
-	reader := bufio.NewReader(os.Stdin)
-	for {
-
-		fmt.Printf("%s[Y]es|[N]o?", q)
-		response, err := reader.ReadString('\n')
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		response = strings.ToLower(strings.TrimSpace(response))
-
-		if response == "y" || response == "yes" {
-			return true
-		} else if response == "n" || response == "no" {
-			return false
 		}
 	}
 }
