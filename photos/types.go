@@ -53,7 +53,7 @@ type ContributorInfo struct {
 type MediaItem struct {
 	ID              string           `json:"id"`
 	Description     *string          `json:"description,omitempty"`
-	ProductULR      string           `json:"productUrl"`
+	ProductURL      string           `json:"productUrl"`
 	BaseURL         string           `json:"baseUrl"`
 	MimeType        string           `json:"mimeType"`
 	MediaMetadata   MediaMetadata    `json:"mediaMetadata"`
@@ -136,7 +136,7 @@ type ShareInfo struct {
 type Album struct {
 	ID                    string    `json:"id"`
 	Title                 string    `json:"title"`
-	ProductULR            string    `json:"productUrl"`
+	ProductURL            string    `json:"productUrl"`
 	IsWritable            bool      `json:"isWriteable"`
 	ShareInfo             ShareInfo `json:"shareInfo"`
 	MediaItemsCount       string    `json:"mediaItemsCount"`
