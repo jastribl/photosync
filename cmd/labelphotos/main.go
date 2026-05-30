@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/jastribl/photosync/cmd/utils"
+	utils "github.com/jastribl/photosync/cmd"
 	"github.com/jastribl/photosync/config"
 	"github.com/jastribl/photosync/labelling"
 	"github.com/jastribl/photosync/photos"
