@@ -1,10 +1,7 @@
 package main
 
 import (
-	"bufio"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
@@ -40,36 +37,9 @@ func main() {
 	fmt.Println("Running for the following input")
 	fmt.Println("Root picture dir: '" + rootPicturesDir + "'")
 
-	var pickerSessionID string
-	_, err = os.Stat(savedSessionCacheFile)
-	cacheDoesNotExist := errors.Is(err, os.ErrNotExist)
-	if cacheDoesNotExist || !utils.YesNo("Would you like to re-use your previous picker session?") {
-		pickerSession, err := client.NewPickerSession()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		pickerSession, err = client.WaitForSession(pickerSession)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		pickerSessionID = pickerSession.ID
-		f, err := os.Create(savedSessionCacheFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer f.Close()
-		w := bufio.NewWriter(f)
-		w.WriteString(pickerSessionID)
-		w.Flush()
-	} else if !cacheDoesNotExist {
-		// here we know we failed the top condition because we wanted to use the cache
-		out, err := ioutil.ReadFile(savedSessionCacheFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pickerSessionID = string(out)
+	pickerSessionID, err := utils.GetPickerSessionID(client, savedSessionCacheFile)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	log.Printf("About to fetch media items from session %s", pickerSessionID)
