@@ -75,7 +75,7 @@ MEDIA_ITEM_LOOP:
 				i,
 				mediaItem.MediaMetadata.CreationTime,
 				lowercaseFilename,
-				mediaItem2.ProductULR,
+				mediaItem2.ProductURL,
 			)
 		}
 	}

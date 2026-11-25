@@ -93,7 +93,7 @@ MEDIA_ITEM_LOOP:
 				mediaItem.MediaMetadata.CreationTime,
 				i,
 				filenameLowerCase,
-				mediaItem.ProductULR,
+				mediaItem.ProductURL,
 			)
 		}
 		numExtra += 1
@@ -115,12 +115,12 @@ MEDIA_ITEM_LOOP:
 		if mediaItems, ok := allPhotosLowerCaseFilenamesToMediaItems[filenameLowerCase]; ok {
 			// Check if we have a media item for this file name - if so print that out so we can add it
 			for i, mediaItem := range mediaItems {
-				fmt.Printf("Link to missing in Photos: (%s) (%d): %s\n", filenameLowerCase, i, mediaItem.ProductULR)
+				fmt.Printf("Link to missing in Photos: (%s) (%d): %s\n", filenameLowerCase, i, mediaItem.ProductURL)
 			}
 		} else if mediaItems, ok := allPhotosLowerCaseFilenamesToMediaItems[filenameLowerCaseHEIC]; ok {
 			// Check for the same thing but with extensions swapped
 			for i, mediaItem := range mediaItems {
-				fmt.Printf("Link to missing in Photos: (%s) (%d): %s\n", filenameLowerCaseHEIC, i, mediaItem.ProductULR)
+				fmt.Printf("Link to missing in Photos: (%s) (%d): %s\n", filenameLowerCaseHEIC, i, mediaItem.ProductURL)
 			}
 		} else {
 			// Otherwise we're missing the file and don't know where to find it

@@ -49,7 +49,7 @@ func main() {
 			if len(items) > 1 {
 				fmt.Printf("Found multiple media (%d) for filename %s\n", len(items), lowercaseLocalFilename)
 				for i, item := range items {
-					log.Printf("Item %d: %s\n", i, item.ProductULR)
+					log.Printf("Item %d: %s\n", i, item.ProductURL)
 				}
 			}
 		} else {

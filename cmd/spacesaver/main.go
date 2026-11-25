@@ -52,7 +52,7 @@ func main() {
 				log.Fatal(err)
 			}
 			if timeOfImage.After(freeBefore) {
-				log.Println(mediaItem.ProductULR)
+				log.Println(mediaItem.ProductURL)
 			}
 		}
 	}
