@@ -53,16 +53,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	allFilenamesLowerCaseToMediaItems := make(map[string][]*photos.MediaItem)
-	for _, mediaItem := range mediaItems {
-		lowercaseFilename := strings.ToLower(mediaItem.Filename)
-		tempItems, found := allFilenamesLowerCaseToMediaItems[lowercaseFilename]
-		if !found {
-			tempItems = []*photos.MediaItem{}
-		}
-		tempItems = append(tempItems, mediaItem)
-		allFilenamesLowerCaseToMediaItems[lowercaseFilename] = tempItems
-	}
+	allFilenamesLowerCaseToMediaItems := photos.MediaItemsToLowercaseFilenameMap(mediaItems)
 
 	for _, filename := range allLocalFilenames {
 		if mediaItems, found := allFilenamesLowerCaseToMediaItems[strings.ToLower(filename)]; found {
