@@ -37,6 +37,12 @@ func main() {
 	fmt.Println("Running for the following input")
 	fmt.Println("Root picture dir: '" + rootPicturesDir + "'")
 
+	// The photos to label still come from a Picker session: since the
+	// March 2025 Library API change, the app can only list media items it
+	// created itself, so it cannot see phone-uploaded photos in the album
+	// via the API — the user picking them is the only way the app learns
+	// about them. See labelling.BuildLabelPlan for how the placements are
+	// derived from the picked set.
 	pickerSessionID, err := utils.GetPickerSessionID(client, savedSessionCacheFile)
 	if err != nil {
 		log.Fatal(err)
@@ -58,58 +64,67 @@ func main() {
 
 	listOfFolderInfo := labelling.GetTopLevelFolderInfo(rootPicturesDir, client, mediaItems)
 
-	for i, folderInfo := range listOfFolderInfo {
-		if folderInfo.NumMediaItems == 0 {
-			log.Printf("No pictures from '%s' in the album '%s', skipping\n", folderInfo.Path, albumName)
-			continue
-		}
-		if folderInfo.Path == rootPicturesDir {
-			log.Println("Not adding label for root dir")
-			continue
-		}
-		labelText := folderInfo.Path[len(rootPicturesDir) : len(folderInfo.Path)-1]
-		if i != len(listOfFolderInfo)-1 {
-			var lastMediaItemOfNextFolder *photos.MediaItem = nil
-			nextFolderPath := ""
-			for j := i + 1; lastMediaItemOfNextFolder == nil && j < len(listOfFolderInfo); j += 1 {
-				nextFolderInfo := listOfFolderInfo[j]
-				nextFolderPath = nextFolderInfo.Path
-				lastMediaItemOfNextFolder = nextFolderInfo.LastMediaItem
-			}
-			if lastMediaItemOfNextFolder != nil {
-				afterMediaID := lastMediaItemOfNextFolder.ID
-				if afterMediaID == "" {
-					log.Fatalln("Got empty media id for: " + lastMediaItemOfNextFolder.Filename)
-				}
-				fmt.Printf(
-					"Adding '%s' after '%s' (last pic of folder '%s') \n",
-					labelText,
-					lastMediaItemOfNextFolder.Filename,
-					nextFolderPath,
-				)
-				if !createLabels {
-					continue
-				}
-				_, err := client.AddTextEnrichmentToAlbum(album.ID, lastMediaItemOfNextFolder, labelText)
-				if err != nil {
-					log.Fatal(err)
-				}
-				continue
-			}
+	// Build the whole label plan before writing anything, so a failure
+	// part-way through cannot leave the remaining labels unplanned.
+	plan := labelling.BuildLabelPlan(listOfFolderInfo, rootPicturesDir)
+	if len(plan) == 0 {
+		log.Println("No labels to add")
+		return
+	}
 
-			log.Printf(
-				"Got no first pic of next folder for '%s', so we must label the front of the album instead\n",
-				labelText,
-			)
-		}
-
-		fmt.Printf("Adding '%s' at the beginning of the album\n", labelText)
+	failed := 0
+	for _, placement := range plan {
 		if !createLabels {
+			describePlacement(placement)
 			continue
 		}
-		_, err := client.AddTextEnrichmentToAlbum(album.ID, nil, labelText)
-		if err != nil {
-			log.Fatal(err)
+		if err := addLabelWithFallback(client, album.ID, placement); err != nil {
+			log.Printf("FAILED to add label '%s': %v", placement.Text, err)
+			failed++
 		}
 	}
+	if failed > 0 {
+		log.Fatalf("%d of %d labels failed", failed, len(plan))
+	}
+}
+
+func describePlacement(placement labelling.LabelPlacement) {
+	if len(placement.Anchors) > 0 {
+		fmt.Printf(
+			"Would add '%s' after '%s'",
+			placement.Text,
+			placement.Anchors[0].Filename,
+		)
+		if len(placement.Anchors) > 1 {
+			fmt.Printf(" (with %d fallback anchor(s))", len(placement.Anchors)-1)
+		}
+		fmt.Println()
+		return
+	}
+	fmt.Printf("Would add '%s' at the beginning of the album\n", placement.Text)
+}
+
+// addLabelWithFallback tries each anchor candidate in order and finally the
+// front of the album. A label whose preferred anchor photo is not in the
+// album no longer aborts the run: it falls back to the next folder's photo,
+// and only fails if no candidate at all works.
+func addLabelWithFallback(client *photos.Client, albumID string, placement labelling.LabelPlacement) error {
+	candidates := append([]*photos.MediaItem{}, placement.Anchors...)
+	candidates = append(candidates, nil) // nil = FIRST_IN_ALBUM
+	var lastErr error
+	for i, anchor := range candidates {
+		_, err := client.AddTextEnrichmentToAlbum(albumID, anchor, placement.Text)
+		if err == nil {
+			if i > 0 {
+				if anchor == nil {
+					log.Printf("Label '%s' fell back to the front of the album", placement.Text)
+				} else {
+					log.Printf("Label '%s' fell back to anchor '%s'", placement.Text, anchor.Filename)
+				}
+			}
+			return nil
+		}
+		lastErr = err
+	}
+	return lastErr
 }

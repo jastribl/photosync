@@ -42,6 +42,10 @@ func TestGetTopLevelFolderInfo(t *testing.T) {
 	if folders[0].NumMediaItems != 2 || folders[0].LastMediaItem == nil || folders[0].LastMediaItem.Filename != "IMG_001.jpg" {
 		t.Errorf("Trip A folder = %+v, want 2 items with last IMG_001.jpg", folders[0])
 	}
+	// MediaItems is the folder's picked photos oldest first.
+	if len(folders[0].MediaItems) != 2 || folders[0].MediaItems[0].Filename != "IMG_001.jpg" || folders[0].MediaItems[1].Filename != "IMG_002.jpg" {
+		t.Errorf("Trip A MediaItems = %+v, want [IMG_001.jpg IMG_002.jpg] oldest first", folders[0].MediaItems)
+	}
 	if folders[1].NumMediaItems != 1 || folders[1].LastMediaItem == nil || folders[1].LastMediaItem.Filename != "IMG_003.jpg" {
 		t.Errorf("Trip B folder = %+v, want 1 item with last IMG_003.jpg", folders[1])
 	}

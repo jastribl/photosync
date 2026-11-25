@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"sort"
-	"strings"
 
 	"github.com/jastribl/photosync/files"
 	"github.com/jastribl/photosync/photos"
@@ -14,6 +13,10 @@ type FolderInfo struct {
 	Path          string
 	NumMediaItems int
 	LastMediaItem *photos.MediaItem
+	// MediaItems is the folder's picked photos, oldest first, so
+	// MediaItems[0] is LastMediaItem. BuildLabelPlan uses this list as
+	// the folder's anchor candidates, oldest first.
+	MediaItems []*photos.MediaItem
 }
 
 func GetTopLevelFolderInfo(
@@ -27,9 +30,11 @@ func GetTopLevelFolderInfo(
 
 	lowercaseFilenameToAlbumMediaMap := photos.MediaItemsToLowercaseFilenameMap(allMediaItems)
 
-	lowercaseFilenameToIndexInAlbum := map[string]int{}
+	// Index of each picked item in the CreationTime-descending list, so
+	// a folder's items can be ordered oldest first (highest index first).
+	indexByID := map[string]int{}
 	for i, item := range allMediaItems {
-		lowercaseFilenameToIndexInAlbum[strings.ToLower(item.Filename)] = i
+		indexByID[item.ID] = i
 	}
 
 	// Find all top level files and assert they are all topLevelDirs
@@ -50,25 +55,32 @@ func GetTopLevelFolderInfo(
 
 		lowercaseFileNamesInDir := files.GetAllLowercaseFilenamesInDir(fullPathWithRoot)
 
-		highestIndexInAlbum := -1
-		numMediaItemsInDir := 0
+		// Collect the folder's picked photos, oldest first. The picked
+		// list is sorted newest first, so oldest means the highest
+		// index in it. A picked photo can match more than one local
+		// file with the same name, so dedupe by media item ID.
+		seen := map[string]bool{}
+		var folderItems []*photos.MediaItem
 		for _, lowercaseFilename := range lowercaseFileNamesInDir {
-			// find highest index item in folder
-			indexInAlbum, foundFile := lowercaseFilenameToIndexInAlbum[lowercaseFilename]
-			if foundFile && (highestIndexInAlbum == -1 || indexInAlbum > highestIndexInAlbum) {
-				highestIndexInAlbum = indexInAlbum
+			for _, item := range lowercaseFilenameToAlbumMediaMap[lowercaseFilename] {
+				if seen[item.ID] {
+					continue
+				}
+				seen[item.ID] = true
+				folderItems = append(folderItems, item)
 			}
-
-			// also find the number of items in each folder
-			numMediaItemsInDir += len(lowercaseFilenameToAlbumMediaMap[lowercaseFilename])
 		}
+		sort.Slice(folderItems, func(a, b int) bool {
+			return indexByID[folderItems[a].ID] > indexByID[folderItems[b].ID]
+		})
 
 		folderInfo := &FolderInfo{
 			Path:          fullPathWithRoot,
-			NumMediaItems: numMediaItemsInDir,
+			NumMediaItems: len(folderItems),
+			MediaItems:    folderItems,
 		}
-		if highestIndexInAlbum != -1 {
-			folderInfo.LastMediaItem = allMediaItems[highestIndexInAlbum]
+		if len(folderItems) > 0 {
+			folderInfo.LastMediaItem = folderItems[0]
 		}
 		listOfFolderInfo = append(listOfFolderInfo, folderInfo)
 	}

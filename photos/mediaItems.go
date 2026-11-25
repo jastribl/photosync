@@ -11,6 +11,12 @@ import (
 // of an arbitrary album. labelphotos and sortlocal only see items from a
 // Picker session (i.e. items the user just picked), not an album's full
 // contents, so removing this would lose that capability entirely.
+//
+// Note (Nov 2026, verified on a test account): since the March 2025 Library
+// API change this only returns media items the app created itself, even for
+// an app-owned album. A photo the user uploaded from their phone and added
+// to the album by hand is invisible here, which is why labelphotos cannot
+// use this to replace the Picker session for real albums.
 func (m *Client) GetAllMediaItemsForAlbum(album *Album) ([]*MediaItem, error) {
 	var allMediaItems []*MediaItem
 	lastPageToken := ""
