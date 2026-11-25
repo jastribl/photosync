@@ -67,10 +67,6 @@ func main() {
 			log.Println("Not adding label for root dir")
 			continue
 		}
-		if labelling.ShouldIgnoreFolder(folderInfo.Path) {
-			log.Printf("Not adding label for path: %s\n", folderInfo.Path)
-			continue
-		}
 		labelText := folderInfo.Path[len(rootPicturesDir) : len(folderInfo.Path)-1]
 		if i != len(listOfFolderInfo)-1 {
 			var lastMediaItemOfNextFolder *photos.MediaItem = nil

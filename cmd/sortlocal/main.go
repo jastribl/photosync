@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -36,11 +35,7 @@ func main() {
 	args := os.Args[1:]
 	rootPicturesDir := strings.TrimRight(args[0], "/") + "/"
 
-	allLocalFilenames := files.GetAllFilenamesInDir(
-		rootPicturesDir,
-		[]*regexp.Regexp{},
-		[]*regexp.Regexp{},
-	)
+	allLocalFilenames := files.GetAllFilenamesInDir(rootPicturesDir)
 
 	pickerSessionID, err := utils.GetPickerSessionID(client, savedSessionCacheFile)
 	if err != nil {

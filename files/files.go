@@ -3,14 +3,10 @@ package files
 import (
 	"log"
 	"os"
-	"regexp"
 	"strings"
 )
 
-func GetAllFilenamesInDir(
-	rootDir string,
-	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
-) []string {
+func GetAllFilenamesInDir(rootDir string) []string {
 	filenames := []string{}
 
 	queue := []string{rootDir}
@@ -24,11 +20,7 @@ func GetAllFilenamesInDir(
 		}
 		for _, file := range files {
 			if file.IsDir() {
-				if !StrMatchesAnyAndNotAny(file.Name(), folderDenyRegexs, folderAllowRegexs) {
-					queue = append(queue, nextItem+file.Name()+"/")
-				} else {
-					log.Println("skipping dir: " + file.Name())
-				}
+				queue = append(queue, nextItem+file.Name()+"/")
 			} else if file.Name() == ".DS_Store" {
 				continue
 			} else {
@@ -40,35 +32,14 @@ func GetAllFilenamesInDir(
 	return filenames
 }
 
-func GetAllLowercaseFilenamesInDir(
-	rootDir string,
-	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
-) []string {
+func GetAllLowercaseFilenamesInDir(rootDir string) []string {
 	lowercaseFilenames := []string{}
 
-	for _, b := range GetAllFilenamesInDir(rootDir, folderDenyRegexs, folderAllowRegexs) {
+	for _, b := range GetAllFilenamesInDir(rootDir) {
 		lowercaseFilenames = append(lowercaseFilenames, strings.ToLower(b))
 	}
 
 	return lowercaseFilenames
-}
-
-func StrMatchesAnyAndNotAny(s string, denyRegexs, allowRegexs []*regexp.Regexp) bool {
-	for _, denyRegex := range denyRegexs {
-		if denyRegex.MatchString(s) {
-			denyRuling := true
-			for _, allowRegex := range allowRegexs {
-				if allowRegex.MatchString(s) {
-					denyRuling = false
-					break
-				}
-			}
-			if denyRuling {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func FileExists(filePath string) bool {
