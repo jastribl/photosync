@@ -69,16 +69,6 @@ func (m *Client) GetAllMediaItemsWithCache() ([]*MediaItem, error) {
 	return allMediaItems, err
 }
 
-// todo: remove this function since it's doesn't work anymore
-func (m *Client) GetAllLowercaseFilenameToMediaItemMapWithCache() (map[string][]*MediaItem, error) {
-	allMediaItems, err := m.GetAllMediaItemsWithCache()
-	if err != nil {
-		return nil, err
-	}
-
-	return MediaItemsToLowercaseFilenameMap(allMediaItems), nil
-}
-
 // GetAllMediaItemsForAlbum is kept intentionally even though no current
 // tool calls it: it is the only way in this codebase to list the contents
 // of an arbitrary album. labelphotos and sortlocal only see items from a

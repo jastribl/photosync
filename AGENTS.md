@@ -10,7 +10,7 @@ never commit them.
 
 ## Build / check
 - Requires Go 1.24 (`go.mod`).
-- Build everything: `make build_all` — produces all 6 remaining binaries in `bin/`.
+- Build everything: `make build_all` — produces all 5 remaining binaries in `bin/`.
 - Vet everything: `go vet ./...`
 - `make clean` removes the binaries. `make check` just builds everything
   and vets it (it used to run the removed missing-file checks against
@@ -23,7 +23,6 @@ never commit them.
 | `createalbum` | Main tool. Creates a Google Photos album with the given title. |
 | `sortlocal` | Sorts local photos into folders by date, using GPS timezone lookup. |
 | `cacheitems` | Caches the full Google Photos media list to `cache/allMediaItems.json`. |
-| `findallmissingphotos` | Lists local files with no matching Photos item. |
 | `spacesaver` | Lists URLs of Photos items not held locally (after `free-before-date` in config) as deletion candidates. |
 
 ## Conventions / cautions

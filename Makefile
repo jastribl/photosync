@@ -3,7 +3,6 @@ export MAKEFLAGS="-j 16"
 build_all: \
 	cacheitems \
 	createalbum \
-	findallmissingphotos \
 	labelphotos \
 	sortlocal \
 	spacesaver
@@ -16,9 +15,6 @@ cacheitems:
 	go build -o bin/$@ cmd/$@/main.go
 
 createalbum:
-	go build -o bin/$@ cmd/$@/main.go
-
-findallmissingphotos:
 	go build -o bin/$@ cmd/$@/main.go
 
 labelphotos:
