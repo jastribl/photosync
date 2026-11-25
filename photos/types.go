@@ -92,19 +92,19 @@ const (
 )
 
 type MediaFile struct {
-	BaseUrl           string
-	MimeType          string
-	Filename          string
-	MediaFileMetadata MediaFileMetadata
+	BaseUrl           string            `json:"baseUrl"`
+	MimeType          string            `json:"mimeType"`
+	Filename          string            `json:"filename"`
+	MediaFileMetadata MediaFileMetadata `json:"mediaFileMetadata"`
 }
 
 type MediaFileMetadata struct {
-	Width         int
-	height        int
-	CameraMake    string
-	CameraModel   string
-	PhotoMetadata PhotoMetadata
-	VideoMetadata VideoMetadata
+	Width         int           `json:"width"`
+	Height        int           `json:"height"`
+	CameraMake    string        `json:"cameraMake"`
+	CameraModel   string        `json:"cameraModel"`
+	PhotoMetadata PhotoMetadata `json:"photoMetadata"`
+	VideoMetadata VideoMetadata `json:"videoMetadata"`
 }
 
 type PhotoMetadata struct {
@@ -150,7 +150,8 @@ type Albums struct {
 }
 
 type PickerSessionRequest struct {
-	RequestId string `json:"requestId,omitempty"`
+	RequestId     string         `json:"requestId,omitempty"`
+	PickingConfig *PickingConfig `json:"pickingConfig,omitempty"`
 }
 
 type PollingConfig struct {
@@ -158,11 +159,20 @@ type PollingConfig struct {
 	TimeoutIn    string `json:"timeoutIn"`
 }
 
+// PickingConfig is the client-specified configuration for the user's
+// picking experience during a session. MaxItemCount caps how many items
+// the user can pick (the API defaults to 2000 when it is unset or 0);
+// leave it nil to not set a limit.
+type PickingConfig struct {
+	MaxItemCount string `json:"maxItemCount,omitempty"`
+}
+
 type PickerSession struct {
-	ID            string        `json:"id"`
-	PickerURI     string        `json:"pickerUri"`
-	PollingURI    string        `json:"-"`
-	PollingConfig PollingConfig `json:"pollingConfig"`
-	ExpireTime    time.Time     `json:"expireTime"`
-	MediaItemsSet bool          `json:"mediaItemsSet"`
+	ID            string         `json:"id"`
+	PickerURI     string         `json:"pickerUri"`
+	PollingURI    string         `json:"-"`
+	PollingConfig PollingConfig  `json:"pollingConfig"`
+	PickingConfig *PickingConfig `json:"pickingConfig,omitempty"`
+	ExpireTime    time.Time      `json:"expireTime"`
+	MediaItemsSet bool           `json:"mediaItemsSet"`
 }
