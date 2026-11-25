@@ -2,8 +2,9 @@
 Util to do things with Google Photos
 
 A set of small Go CLIs (see `AGENTS.md` for a tool-by-tool overview). The
-most-used ones are `labelphotos` (adds folder-name labels inside an album)
-and `createalbum`. There is no database — local state is just
+most-used ones are `labelphotos` (adds folder-name labels inside an album),
+`createalbum`, and `sortlocal` (sorts local photos into date folders).
+There is no database — local state is just
 `config/config.json` + `config/token.json` and the `cache/` folder.
 
 ## Setup

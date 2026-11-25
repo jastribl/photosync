@@ -81,7 +81,7 @@ func main() {
 			continue
 		}
 
-		log.Printf("Unable to find Google drive photo '%s', leaving untouched\n", filename)
+		log.Printf("Unable to find Google Photos photo '%s', leaving untouched\n", filename)
 	}
 }
 
