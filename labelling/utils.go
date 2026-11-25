@@ -31,21 +31,7 @@ type FolderInfo struct {
 }
 
 func ShouldIgnoreFolder(folderName string) bool {
-	for _, denyRegex := range FOLDER_DENY_REGEXS {
-		if denyRegex.MatchString(folderName) {
-			denyRuling := true
-			for _, allowRegex := range FOLDER_ALLOW_REGEXS {
-				if allowRegex.MatchString(folderName) {
-					denyRuling = false
-					break
-				}
-			}
-			if denyRuling {
-				return true
-			}
-		}
-	}
-	return false
+	return files.StrMatchesAnyAndNotAny(folderName, FOLDER_DENY_REGEXS[:], FOLDER_ALLOW_REGEXS[:])
 }
 
 func GetTopLevelFolderInfo(
