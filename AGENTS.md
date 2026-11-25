@@ -31,6 +31,16 @@ never commit them.
 - OAuth is in `photos/client.go`: first run opens the auth URL and serves a
   callback on `localhost:8080`; the token is then cached in
   `config/token.json`. Never print or commit the client secret / token.
+- **Album ownership (Nov 2026): the app can only see and interact with
+  albums it created itself.** An album created in the Google Photos UI, or by
+  another app, is invisible to these tools — including to
+  `GetAllMediaItemsForAlbum` (`mediaItems:search`). So always run
+  `createalbum` first and work with that app-owned album for labelling and
+  anything else that reads album contents. (Verified Nov 25, 2026 on a test
+  account: `mediaItems:search` on an app-owned album with the legacy
+  `photoslibrary` scope returns 403 "insufficient authentication scopes";
+  the `photoslibrary.readonly.appcreateddata` scope is being tested as the
+  replacement — see `config/example-config.json`.)
 - Several tools **mutate** Google Photos (albums, enrichments) or the local
   filesystem (sorting). Do not run them against the owner's real account or
   photo library without his explicit go-ahead for that run. Dry-run / read-only
