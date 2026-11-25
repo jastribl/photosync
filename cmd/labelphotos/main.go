@@ -44,7 +44,6 @@ func main() {
 
 	log.Printf("About to fetch media items from session %s", pickerSessionID)
 	mediaItems, err := client.GetAllMediaItemsForSessionID(pickerSessionID)
-	// mediaItems, err := client.GetAllMediaItemsForSessionID("d8671d27-fe5f-47c1-924a-7e2682b12741")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,35 +80,33 @@ func main() {
 				nextFolderPath = nextFolderInfo.Path
 				lastMediaItemOfNextFolder = nextFolderInfo.LastMediaItem
 			}
-			if lastMediaItemOfNextFolder == nil {
-				log.Printf(
-					"Got no first pic of next folder for '%s', so we must label the front of the album instead\n",
+			if lastMediaItemOfNextFolder != nil {
+				afterMediaID := lastMediaItemOfNextFolder.ID
+				if afterMediaID == "" {
+					log.Fatalln("Got empty media id for: " + lastMediaItemOfNextFolder.Filename)
+				}
+				fmt.Printf(
+					"Adding '%s' after '%s' (last pic of folder '%s') \n",
 					labelText,
+					lastMediaItemOfNextFolder.Filename,
+					nextFolderPath,
 				)
-				goto LABEL_BEGINNING_OF_ALBUM
-			}
-
-			afterMediaID := lastMediaItemOfNextFolder.ID
-			if afterMediaID == "" {
-				log.Fatalln("Got empty media id for: " + lastMediaItemOfNextFolder.Filename)
-			}
-			fmt.Printf(
-				"Adding '%s' after '%s' (last pic of folder '%s') \n",
-				labelText,
-				lastMediaItemOfNextFolder.Filename,
-				nextFolderPath,
-			)
-			if !createLabels {
+				if !createLabels {
+					continue
+				}
+				_, err := client.AddTextEnrichmentToAlbum(album.ID, lastMediaItemOfNextFolder, labelText)
+				if err != nil {
+					log.Fatal(err)
+				}
 				continue
 			}
-			_, err := client.AddTextEnrichmentToAlbum(album.ID, lastMediaItemOfNextFolder, labelText)
-			if err != nil {
-				log.Fatal(err)
-			}
-			continue
+
+			log.Printf(
+				"Got no first pic of next folder for '%s', so we must label the front of the album instead\n",
+				labelText,
+			)
 		}
 
-	LABEL_BEGINNING_OF_ALBUM:
 		fmt.Printf("Adding '%s' at the beginning of the album\n", labelText)
 		if !createLabels {
 			continue
