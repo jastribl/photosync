@@ -107,11 +107,12 @@ func TestBuildLabelPlanMultiPhotoChain(t *testing.T) {
 	}
 }
 
-func TestBuildLabelPlanCapsAnchorsPerFolder(t *testing.T) {
-	// A folder with more than maxAnchorsPerFolder photos contributes
-	// only the oldest maxAnchorsPerFolder to a label's chain.
+func TestBuildLabelPlanUsesAllPhotosInFolder(t *testing.T) {
+	// A folder contributes all of its photos to a label's chain, oldest
+	// first — no cap, so a surviving photo late in the folder is still
+	// tried as an anchor.
 	var middle []*photos.MediaItem
-	for i := 1; i <= maxAnchorsPerFolder+2; i++ {
+	for i := 1; i <= 12; i++ {
 		middle = append(middle, item(fmt.Sprintf("b%d", i), fmt.Sprintf("b%d.jpg", i)))
 	}
 	folders := []*FolderInfo{
@@ -123,7 +124,7 @@ func TestBuildLabelPlanCapsAnchorsPerFolder(t *testing.T) {
 	if len(plan) != 3 {
 		t.Fatalf("expected 3 placements, got %d", len(plan))
 	}
-	want := []string{"b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b10", "c1"}
+	want := []string{"b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b10", "b11", "b12", "c1"}
 	if got := anchorIDs(plan[0]); !equalStrings(got, want) {
 		t.Errorf("first label anchors = %v, want %v", got, want)
 	}

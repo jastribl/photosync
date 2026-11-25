@@ -44,7 +44,7 @@ because since the March 2025 Library API change the app can only list media
 items it created itself and cannot see phone-uploaded photos in the album.
 It builds the full label plan before writing anything; if a label's anchor
 photo turns out not to be in the album, it tries the later folders' photos
-oldest-first (up to 10 per folder) instead of aborting mid-run, so the
+oldest-first instead of aborting mid-run, so the
 label lands after the closest surviving photo to its correct spot, and if
 no anchor works the label is left out and reported rather than being put
 at the front of the album. On `--create` runs, failed anchors are tracked:

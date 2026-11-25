@@ -94,9 +94,9 @@ func main() {
 	// album, so its label is skipped instead of added. Labels run
 	// oldest-first and each label's chain starts with the next folder's
 	// photos, so a folder is probed by the labels before it — no
-	// reordering needed. Two limits: the first folder is never probed
-	// (no earlier label), and a folder with more than maxAnchorsPerFolder
-	// photos is only partly probed, so it is never skipped on a guess.
+	// reordering needed. One limit: the first folder is never probed
+	// (no earlier label). Every other folder is fully probed — its
+	// whole chain is tried — so a skip is conclusive, not a guess.
 	// Dry runs never scan: they make no API calls, so nothing is probed
 	// and every label is shown.
 	knownMissing := map[string]bool{}

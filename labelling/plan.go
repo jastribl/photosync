@@ -26,10 +26,10 @@ type LabelPlacement struct {
 // oldest first within each folder, so if the ideal anchor (the next
 // folder's oldest photo) is not in the album, the label lands after the
 // closest surviving photo to its correct spot instead of jumping a whole
-// day. Each folder contributes at most maxAnchorsPerFolder candidates: if
-// that many of a folder's oldest photos are all missing from the album,
-// the folder is effectively gone, and the chain moves on to the next
-// folder instead of burning API calls on every photo in it.
+// day. Each folder contributes all of its photos: a label keeps trying
+// until it finds a surviving photo, since the fallback is what makes the
+// script work — capping the chain could miss a photo that is in the
+// album.
 //
 // Ordering assumption: the album is sorted newest first (which is how
 // Justin keeps his albums). A folder's label goes right after the last
@@ -42,19 +42,6 @@ type LabelPlacement struct {
 // wrong end. Folder order comes from the local directory listing, which
 // is alphabetical by folder name, so it is chronological only when folder
 // names sort chronologically (e.g. ISO dates like 2026-11-20).
-//
-// maxAnchorsPerFolder bounds how many photos of one later folder a label
-// will try as anchors. See the anchor-chain note above.
-const maxAnchorsPerFolder = 10
-
-// anchorCandidates returns the folder's picked photos, oldest first,
-// capped at maxAnchorsPerFolder.
-func anchorCandidates(folder *FolderInfo) []*photos.MediaItem {
-	if len(folder.MediaItems) > maxAnchorsPerFolder {
-		return folder.MediaItems[:maxAnchorsPerFolder]
-	}
-	return folder.MediaItems
-}
 func BuildLabelPlan(listOfFolderInfo []*FolderInfo, rootDir string) []LabelPlacement {
 	plan := []LabelPlacement{}
 	for i, folderInfo := range listOfFolderInfo {
@@ -68,7 +55,7 @@ func BuildLabelPlan(listOfFolderInfo []*FolderInfo, rootDir string) []LabelPlace
 		placement := LabelPlacement{Text: labelText}
 		if i != len(listOfFolderInfo)-1 {
 			for j := i + 1; j < len(listOfFolderInfo); j++ {
-				placement.Anchors = append(placement.Anchors, anchorCandidates(listOfFolderInfo[j])...)
+				placement.Anchors = append(placement.Anchors, listOfFolderInfo[j].MediaItems...)
 			}
 		}
 		plan = append(plan, placement)
