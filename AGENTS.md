@@ -19,7 +19,7 @@ never commit them.
 ## The tools (`cmd/`)
 | Tool | What it does |
 | --- | --- |
-| `labelphotos` | Main tool. Opens a Picker session, matches local top-level folders to an album by filename, and inserts text-enrichment labels. Dry-run unless `--create` is passed. |
+| `labelphotos` | Main tool. Opens a Picker session, matches local top-level folders to an album by filename, and inserts text-enrichment labels. Dry-run unless `--create` is passed. The Picker is required: since the March 2025 Library API change the app can only list media items it created itself, so it cannot see phone-uploaded photos in the album (verified Nov 2026). Placements come from `labelling.BuildLabelPlan`, built up front before any write; a label whose anchor photo is not in the album falls back to the next folder's photo, then the front of the album, instead of aborting mid-run. |
 | `createalbum` | Main tool. Creates a Google Photos album with the given title. |
 | `sortlocal` | Sorts local photos into folders by date, using GPS timezone lookup. |
 

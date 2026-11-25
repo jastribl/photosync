@@ -13,6 +13,9 @@ Requires Go 1.24. To get setup, just get the repo and run `cp config/example-con
 On first run, the tool opens a Google OAuth page in your browser and serves
 the callback on `localhost:8080`; the token is then cached in
 `config/token.json` (gitignored — never commit it or the client secret).
+The config needs the `photoslibrary.readonly.appcreateddata` scope (for
+listing the app's albums); if your token predates that scope, delete
+`config/token.json` and re-authenticate to pick it up.
 
 ## Build
 ```
@@ -34,3 +37,11 @@ go run cmd/sortlocal/main.go /Users/justinstribling/Desktop/To\ sort/
 // Create an album:
 go run cmd/createalbum/main.go "Album name"
 ```
+
+`labelphotos` is a dry run unless `--create` is passed. It opens a Picker
+session for you to pick the period's photos — the Picker is required,
+because since the March 2025 Library API change the app can only list media
+items it created itself and cannot see phone-uploaded photos in the album.
+It builds the full label plan before writing anything; if a label's anchor
+photo turns out not to be in the album, it falls back to the next folder's
+photo (and finally the front of the album) instead of aborting mid-run.
