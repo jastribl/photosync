@@ -79,6 +79,11 @@ func (m *Client) GetAllLowercaseFilenameToMediaItemMapWithCache() (map[string][]
 	return MediaItemsToLowercaseFilenameMap(allMediaItems), nil
 }
 
+// GetAllMediaItemsForAlbum is kept intentionally even though no current
+// tool calls it: it is the only way in this codebase to list the contents
+// of an arbitrary album. labelphotos and sortlocal only see items from a
+// Picker session (i.e. items the user just picked), not an album's full
+// contents, so removing this would lose that capability entirely.
 func (m *Client) GetAllMediaItemsForAlbum(album *Album) ([]*MediaItem, error) {
 	var allMediaItems []*MediaItem
 	lastPageToken := ""

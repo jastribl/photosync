@@ -23,7 +23,6 @@ never commit them.
 | `createalbum` | Main tool. Creates a Google Photos album with the given title. |
 | `sortlocal` | Sorts local photos into folders by date, using GPS timezone lookup. |
 | `cacheitems` | Caches the full Google Photos media list to `cache/allMediaItems.json`. |
-| `drive2photos` | Finds local files missing from a Photos album (and vice versa). |
 | `findallmissinglocal` | Lists Photos items with no matching local file. |
 | `findallmissingphotos` | Lists local files with no matching Photos item. |
 | `spacesaver` | Lists URLs of Photos items not held locally (after `free-before-date` in config) as deletion candidates. |
