@@ -90,6 +90,7 @@ func main() {
 	if failed > 0 {
 		log.Fatalf("%d of %d labels failed", failed, len(plan))
 	}
+	log.Printf("Added %d of %d labels", len(plan)-failed, len(plan))
 }
 
 func describePlacement(placement labelling.LabelPlacement) {
@@ -115,14 +116,19 @@ func describePlacement(placement labelling.LabelPlacement) {
 // it at the front would attach a day's label to the wrong place, so the
 // error is reported and the caller moves on to the next label.
 //
-// Logging is one line per label at most: a single warning when a fallback
-// anchor is the one that worked, a single error from the caller when the
-// label could not be added at all. Failed attempts are not logged
-// individually.
+// Logging is one line per label at most: a single "Added label ..." line
+// when the label lands on its first anchor or at the front, a single
+// warning when a fallback anchor is the one that worked, a single error
+// from the caller when the label could not be added at all. Failed
+// attempts are not logged individually.
 func addLabelWithFallback(client *photos.Client, albumID string, placement labelling.LabelPlacement) error {
 	if len(placement.Anchors) == 0 {
 		_, err := client.AddTextEnrichmentToAlbum(albumID, nil, placement.Text)
-		return err
+		if err != nil {
+			return err
+		}
+		log.Printf("Added label '%s' at the beginning of the album", placement.Text)
+		return nil
 	}
 	var lastErr error
 	for i, anchor := range placement.Anchors {
@@ -130,6 +136,8 @@ func addLabelWithFallback(client *photos.Client, albumID string, placement label
 		if err == nil {
 			if i > 0 {
 				log.Printf("Label '%s' fell back to anchor '%s'", placement.Text, anchor.Filename)
+			} else {
+				log.Printf("Added label '%s' after '%s'", placement.Text, anchor.Filename)
 			}
 			return nil
 		}
