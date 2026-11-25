@@ -1,7 +1,6 @@
 package files
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
@@ -19,7 +18,7 @@ func GetAllFilenamesInDir(
 		nextItem := queue[0]
 		queue = queue[1:]
 
-		files, err := ioutil.ReadDir(nextItem)
+		files, err := os.ReadDir(nextItem)
 		if err != nil {
 			log.Fatalf("Error reading dir '%s': %s\n", nextItem, err.Error())
 		}

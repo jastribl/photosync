@@ -1,8 +1,8 @@
 package labelling
 
 import (
-	"io/ioutil"
 	"log"
+	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -51,7 +51,7 @@ func GetTopLevelFolderInfo(
 	}
 
 	// Find all top level files and assert they are all topLevelDirs
-	topLevelDirs, err := ioutil.ReadDir(rootDir)
+	topLevelDirs, err := os.ReadDir(rootDir)
 	if err != nil {
 		log.Fatal(err)
 	}
