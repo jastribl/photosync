@@ -31,15 +31,17 @@ type LabelPlacement struct {
 // the folder is effectively gone, and the chain moves on to the next
 // folder instead of burning API calls on every photo in it.
 //
-// It keeps the historical placement rule: a folder's label goes right after
-// the last photo of the next folder that has photos, and the last folder's
-// label (or any label with no later folder) goes at the front of the album.
-// The difference from the old inline loop is that every later folder's last
-// photo is kept as a fallback anchor instead of only the first one, so a
-// label whose preferred anchor turns out not to be in the album can fall
-// back to the next candidate instead of aborting the whole run. A label
-// with no usable anchor is left out by the caller rather than being put
-// at the front of the album.
+// Ordering assumption: the album is sorted newest first (which is how
+// Justin keeps his albums). A folder's label goes right after the last
+// photo of the next folder that has photos, and the last folder's label
+// (or any label with no later folder) goes at the front of the album — the
+// front is the newest end, so that is where the newest folder's label
+// belongs. The anchor-relative placements survive a re-sort (each label
+// stays attached to its anchor photo), but the front placement does not:
+// in an oldest-first album the newest folder's label would land at the
+// wrong end. Folder order comes from the local directory listing, which
+// is alphabetical by folder name, so it is chronological only when folder
+// names sort chronologically (e.g. ISO dates like 2026-11-20).
 //
 // maxAnchorsPerFolder bounds how many photos of one later folder a label
 // will try as anchors. See the anchor-chain note above.

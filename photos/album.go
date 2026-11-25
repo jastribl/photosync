@@ -174,10 +174,9 @@ func (m *Client) AddTextEnrichmentToAlbum(
 			continue
 		}
 
-		// todo: try adding handling if the media item isn't found
-		// prompt the user to ask if they want to use a different image in the album
-		// (since this one might be missing from this album now that we can't tell this)
-		// either that or write a program to add items to various albums
+		// A missing media item is handled by the caller: labelphotos tries
+		// the next folder's photo as a fallback anchor, and leaves the
+		// label out if no anchor works.
 		return nil, fmt.Errorf(
 			"got an error other than resource exhausted: %s - %s",
 			response.Error.Message,

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	utils "github.com/jastribl/photosync/cmd"
 	"github.com/jastribl/photosync/config"
@@ -29,6 +30,9 @@ func main() {
 
 	args := os.Args[1:]
 	rootPicturesDir := args[0]
+	if !strings.HasSuffix(rootPicturesDir, "/") {
+		rootPicturesDir += "/"
+	}
 	albumName := args[1]
 	createLabels := false
 	if len(args) > 2 && args[2] == "--create" {
