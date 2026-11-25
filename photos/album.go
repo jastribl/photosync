@@ -2,6 +2,7 @@ package photos
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -176,13 +177,25 @@ func (m *Client) AddTextEnrichmentToAlbum(
 
 		// A missing media item is handled by the caller: labelphotos tries
 		// the next folder's photo as a fallback anchor, and leaves the
-		// label out if no anchor works.
-		return nil, fmt.Errorf(
-			"got an error other than resource exhausted: %s - %s",
-			response.Error.Message,
-			response.Error.Status,
-		)
+		// label out if no anchor works. Return the API error itself so
+		// the caller can tell a missing anchor apart from any other
+		// failure (see IsInvalidMediaItemID).
+		return nil, response.Error
 	}
+}
+
+// IsInvalidMediaItemID reports whether err is the API error returned when
+// the anchor media item is not in the album. Verified live Nov 25, 2026:
+// addEnrichment against a valid media item ID that is not in the album
+// returns HTTP 400 with status INVALID_ARGUMENT and message
+// "Invalid media item ID.". Any other error is inconclusive and must not
+// be treated as proof the photo is missing.
+func IsInvalidMediaItemID(err error) bool {
+	var apiErr *ErrorResponse
+	if !errors.As(err, &apiErr) || apiErr == nil {
+		return false
+	}
+	return apiErr.Status == "INVALID_ARGUMENT" && apiErr.Message == "Invalid media item ID."
 }
 
 type EnrichmentItem struct {
@@ -200,6 +213,10 @@ type ErrorResponse struct {
 	Details []ErrorDetails `json:"details"`
 	Message string         `json:"message"`
 	Status  string         `json:"status"`
+}
+
+func (e *ErrorResponse) Error() string {
+	return fmt.Sprintf("%s - %s", e.Message, e.Status)
 }
 
 type AddEnrichmentResponse struct {

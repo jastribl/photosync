@@ -76,13 +76,43 @@ func main() {
 		return
 	}
 
+	// folderItemsByLabel maps each label back to its folder's picked
+	// photos, so the run can tell whether a folder has any photos in the
+	// album at all (see the skip rule below).
+	folderItemsByLabel := map[string][]*photos.MediaItem{}
+	for _, folderInfo := range listOfFolderInfo {
+		if folderInfo.NumMediaItems == 0 || folderInfo.Path == rootPicturesDir {
+			continue
+		}
+		labelText := folderInfo.Path[len(rootPicturesDir) : len(folderInfo.Path)-1]
+		folderItemsByLabel[labelText] = folderInfo.MediaItems
+	}
+
+	// knownMissing collects the IDs of photos proven not to be in the
+	// album: each one failed as an anchor with the not-in-album error.
+	// A folder whose picked photos are all in here has nothing in the
+	// album, so its label is skipped instead of added. Labels run
+	// oldest-first and each label's chain starts with the next folder's
+	// photos, so a folder is probed by the labels before it — no
+	// reordering needed. Two limits: the first folder is never probed
+	// (no earlier label), and a folder with more than maxAnchorsPerFolder
+	// photos is only partly probed, so it is never skipped on a guess.
+	// Dry runs never scan: they make no API calls, so nothing is probed
+	// and every label is shown.
+	knownMissing := map[string]bool{}
 	failed := 0
+	skipped := 0
 	for _, placement := range plan {
 		if !createLabels {
 			describePlacement(placement)
 			continue
 		}
-		if err := addLabelWithFallback(client, album.ID, placement); err != nil {
+		if labelling.FolderProvenEmpty(folderItemsByLabel[placement.Text], knownMissing) {
+			log.Printf("Skipping label '%s': no photos from this folder are in the album", placement.Text)
+			skipped++
+			continue
+		}
+		if err := addLabelWithFallback(client, album.ID, placement, knownMissing); err != nil {
 			log.Printf("unable to add label '%s': %v", placement.Text, err)
 			failed++
 		}
@@ -90,7 +120,10 @@ func main() {
 	if failed > 0 {
 		log.Fatalf("%d of %d labels failed", failed, len(plan))
 	}
-	log.Printf("Added %d of %d labels", len(plan)-failed, len(plan))
+	log.Printf("Added %d of %d labels", len(plan)-failed-skipped, len(plan))
+	if skipped > 0 {
+		log.Printf("Skipped %d label(s): no photos from those folders are in the album", skipped)
+	}
 }
 
 func describePlacement(placement labelling.LabelPlacement) {
@@ -116,12 +149,17 @@ func describePlacement(placement labelling.LabelPlacement) {
 // it at the front would attach a day's label to the wrong place, so the
 // error is reported and the caller moves on to the next label.
 //
+// Every anchor that fails with the not-in-album error is recorded in
+// knownMissing: that failure proves the photo is not in the album, and
+// the caller uses it to skip later labels whose whole folder is proven
+// missing. Any other error is inconclusive and records nothing.
+//
 // Logging is one line per label at most: a single "Added label ..." line
 // when the label lands on its first anchor or at the front, a single
 // warning when a fallback anchor is the one that worked, a single error
 // from the caller when the label could not be added at all. Failed
 // attempts are not logged individually.
-func addLabelWithFallback(client *photos.Client, albumID string, placement labelling.LabelPlacement) error {
+func addLabelWithFallback(client *photos.Client, albumID string, placement labelling.LabelPlacement, knownMissing map[string]bool) error {
 	if len(placement.Anchors) == 0 {
 		_, err := client.AddTextEnrichmentToAlbum(albumID, nil, placement.Text)
 		if err != nil {
@@ -140,6 +178,9 @@ func addLabelWithFallback(client *photos.Client, albumID string, placement label
 				log.Printf("Added label '%s' after '%s'", placement.Text, anchor.Filename)
 			}
 			return nil
+		}
+		if photos.IsInvalidMediaItemID(err) {
+			knownMissing[anchor.ID] = true
 		}
 		lastErr = err
 	}

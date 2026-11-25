@@ -47,4 +47,7 @@ photo turns out not to be in the album, it tries the later folders' photos
 oldest-first (up to 10 per folder) instead of aborting mid-run, so the
 label lands after the closest surviving photo to its correct spot, and if
 no anchor works the label is left out and reported rather than being put
-at the front of the album.
+at the front of the album. On `--create` runs, failed anchors are tracked:
+a label whose folder's picked photos are all proven missing from the album
+is skipped instead of added. Dry runs show every label, since they make no
+API calls and nothing is probed.
