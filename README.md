@@ -15,7 +15,7 @@ the callback on `localhost:8080`; the token is then cached in
 
 ## Build
 ```
-make build_all   # builds all 4 remaining tools into bin/
+make build_all   # builds all 3 tools into bin/
 go vet ./...     # vet everything
 ```
 

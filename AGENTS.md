@@ -5,12 +5,12 @@ A set of small Go CLIs that talk to the Google Photos Library API and the
 Google Photos Picker API over plain HTTP (`photos/` holds the shared client).
 There is no server, no database, and no other language — Go is the whole stack.
 Local state is just files: `config/config.json` + `config/token.json`, and
-`cache/` (media-item lists, saved picker-session IDs). Both are gitignored;
+`cache/` (saved picker-session IDs). Both are gitignored;
 never commit them.
 
 ## Build / check
 - Requires Go 1.24 (`go.mod`).
-- Build everything: `make build_all` — produces all 4 remaining binaries in `bin/`.
+- Build everything: `make build_all` — produces the 3 binaries in `bin/`.
 - Vet everything: `go vet ./...`
 - `make clean` removes the binaries. `make check` just builds everything
   and vets it (it used to run the removed missing-file checks against
@@ -22,7 +22,6 @@ never commit them.
 | `labelphotos` | Main tool. Opens a Picker session, matches local top-level folders to an album by filename, and inserts text-enrichment labels. Dry-run unless `--create` is passed. |
 | `createalbum` | Main tool. Creates a Google Photos album with the given title. |
 | `sortlocal` | Sorts local photos into folders by date, using GPS timezone lookup. |
-| `cacheitems` | Caches the full Google Photos media list to `cache/allMediaItems.json`. |
 
 ## Conventions / cautions
 - Matching between local files and Photos is by **lowercase filename** — see
@@ -36,5 +35,8 @@ never commit them.
   filesystem (sorting). Do not run them against the owner's real account or
   photo library without his explicit go-ahead for that run. Dry-run / read-only
   checks first where one exists (`labelphotos` without `--create`).
-- Cleanup candidates (owner's words, Nov 2026): most tools other than
-  `labelphotos` and `createalbum` are rarely used and may be removed.
+- The tools in use (owner, Nov 2026) are `labelphotos`, `createalbum`, and
+  `sortlocal`. The old import/sync/audit tools (`drive2photos`,
+  `findallmissinglocal`, `findallmissingphotos`, `spacesaver`) and the
+  media-item cache (`cacheitems`) were removed in Nov 2026 — see the
+  `cleanup/remove-unused-tools` branch history.
