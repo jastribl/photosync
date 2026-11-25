@@ -37,7 +37,9 @@ type LabelPlacement struct {
 // The difference from the old inline loop is that every later folder's last
 // photo is kept as a fallback anchor instead of only the first one, so a
 // label whose preferred anchor turns out not to be in the album can fall
-// back to the next candidate instead of aborting the whole run.
+// back to the next candidate instead of aborting the whole run. A label
+// with no usable anchor is left out by the caller rather than being put
+// at the front of the album.
 //
 // maxAnchorsPerFolder bounds how many photos of one later folder a label
 // will try as anchors. See the anchor-chain note above.

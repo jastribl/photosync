@@ -79,7 +79,7 @@ func main() {
 			continue
 		}
 		if err := addLabelWithFallback(client, album.ID, placement); err != nil {
-			log.Printf("FAILED to add label '%s': %v", placement.Text, err)
+			log.Printf("unable to add label '%s': %v", placement.Text, err)
 			failed++
 		}
 	}
@@ -104,23 +104,28 @@ func describePlacement(placement labelling.LabelPlacement) {
 	fmt.Printf("Would add '%s' at the beginning of the album\n", placement.Text)
 }
 
-// addLabelWithFallback tries each anchor candidate in order and finally the
-// front of the album. A label whose preferred anchor photo is not in the
-// album no longer aborts the run: it falls back to the next folder's photo,
-// and only fails if no candidate at all works.
+// addLabelWithFallback tries each anchor candidate in order. A label with
+// no anchors is placed at the front of the album — that is its real
+// placement (the last folder has no later folder to anchor after), not a
+// fallback. A label with anchors that all fail is not added at all: putting
+// it at the front would attach a day's label to the wrong place, so the
+// error is reported and the caller moves on to the next label.
+//
+// Logging is one line per label at most: a single warning when a fallback
+// anchor is the one that worked, a single error from the caller when the
+// label could not be added at all. Failed attempts are not logged
+// individually.
 func addLabelWithFallback(client *photos.Client, albumID string, placement labelling.LabelPlacement) error {
-	candidates := append([]*photos.MediaItem{}, placement.Anchors...)
-	candidates = append(candidates, nil) // nil = FIRST_IN_ALBUM
+	if len(placement.Anchors) == 0 {
+		_, err := client.AddTextEnrichmentToAlbum(albumID, nil, placement.Text)
+		return err
+	}
 	var lastErr error
-	for i, anchor := range candidates {
+	for i, anchor := range placement.Anchors {
 		_, err := client.AddTextEnrichmentToAlbum(albumID, anchor, placement.Text)
 		if err == nil {
 			if i > 0 {
-				if anchor == nil {
-					log.Printf("Label '%s' fell back to the front of the album", placement.Text)
-				} else {
-					log.Printf("Label '%s' fell back to anchor '%s'", placement.Text, anchor.Filename)
-				}
+				log.Printf("Label '%s' fell back to anchor '%s'", placement.Text, anchor.Filename)
 			}
 			return nil
 		}
