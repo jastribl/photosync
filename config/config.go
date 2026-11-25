@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-// Config is the struct that holds splitwise config info
+// Config is the struct that holds photosync config info
 type Config struct {
 	TokenFileLocation string    `json:"token-file-location"`
 	TokenDoneSignal   chan bool `json:"-"`
