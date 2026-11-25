@@ -8,11 +8,6 @@ import (
 	"strings"
 )
 
-var FILE_NAME_REPLACEMENTS = [...]struct{ A, B string }{
-	{".heic", ".jpg"},
-	{".jpg", ".heic"},
-}
-
 func GetAllFilenamesInDir(
 	rootDir string,
 	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,

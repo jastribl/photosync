@@ -3,7 +3,6 @@ export MAKEFLAGS="-j 16"
 build_all: \
 	cacheitems \
 	createalbum \
-	findallmissinglocal \
 	findallmissingphotos \
 	labelphotos \
 	sortlocal \
@@ -19,9 +18,6 @@ cacheitems:
 createalbum:
 	go build -o bin/$@ cmd/$@/main.go
 
-findallmissinglocal:
-	go build -o bin/$@ cmd/$@/main.go
-
 findallmissingphotos:
 	go build -o bin/$@ cmd/$@/main.go
 
@@ -34,14 +30,5 @@ sortlocal:
 spacesaver:
 	go build -o bin/$@ cmd/$@/main.go
 
-check: findallmissingphotos findallmissinglocal
-	rm -f out && touch out
-	./bin/findallmissinglocal >> out
-	./bin/findallmissingphotos ~/Pictures/All\ Pictures/Parents\ Grad\ Trip\ 2019/ >> out
-	./bin/findallmissingphotos ~/Pictures/All\ Pictures/San\ Francisco\ 2018/ >> out
-	./bin/findallmissingphotos ~/Pictures/All\ Pictures/Seattle\ 2018/ >> out
-	./bin/findallmissingphotos ~/Pictures/All\ Pictures/Seattle\ 2019/ >> out
-	./bin/findallmissingphotos ~/Pictures/All\ Pictures/Seattle\ 2020/ >> out
-	./bin/findallmissingphotos ~/Pictures/All\ Pictures/Seattle\ 2021/ >> out
-	./bin/findallmissingphotos ~/Pictures/All\ Pictures/Winter\ 2019\ Term/ >> out
-	cat out
+check: build_all
+	go vet ./...

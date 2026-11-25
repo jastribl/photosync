@@ -10,11 +10,11 @@ never commit them.
 
 ## Build / check
 - Requires Go 1.24 (`go.mod`).
-- Build everything: `make build_all` — produces all 8 binaries in `bin/`.
+- Build everything: `make build_all` — produces all 6 remaining binaries in `bin/`.
 - Vet everything: `go vet ./...`
-- `make clean` removes the binaries. `make check` runs the missing-file
-  checks against the owner's local photo folders — do not run it blindly, it
-  assumes his macOS paths.
+- `make clean` removes the binaries. `make check` just builds everything
+  and vets it (it used to run the removed missing-file checks against
+  hardcoded macOS photo paths).
 
 ## The tools (`cmd/`)
 | Tool | What it does |
@@ -23,14 +23,12 @@ never commit them.
 | `createalbum` | Main tool. Creates a Google Photos album with the given title. |
 | `sortlocal` | Sorts local photos into folders by date, using GPS timezone lookup. |
 | `cacheitems` | Caches the full Google Photos media list to `cache/allMediaItems.json`. |
-| `findallmissinglocal` | Lists Photos items with no matching local file. |
 | `findallmissingphotos` | Lists local files with no matching Photos item. |
 | `spacesaver` | Lists URLs of Photos items not held locally (after `free-before-date` in config) as deletion candidates. |
 
 ## Conventions / cautions
 - Matching between local files and Photos is by **lowercase filename** — see
-  `photos.MediaItemsToLowercaseFilenameMap` and `files/`. HEIC/JPG are treated
-  as interchangeable in places (`files.FILE_NAME_REPLACEMENTS`).
+  `photos.MediaItemsToLowercaseFilenameMap` and `files/`.
 - `labelphotos` and `sortlocal` open a browser (`open <picker-url>`) and wait
   for the user to pick photos; they are interactive and macOS-oriented.
 - OAuth is in `photos/client.go`: first run opens the auth URL and serves a
