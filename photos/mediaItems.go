@@ -1,10 +1,8 @@
 package photos
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -97,31 +95,24 @@ func (m *Client) searchMediaItems(albumID, pageToken string) (*MediaItems, error
 		PageToken: pageToken,
 		AlbumId:   albumID,
 	}
-	jsonStr, err := json.Marshal(searchRequest)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := m.httpClient.Post(
-		"https://photoslibrary.googleapis.com/v1/mediaItems:search",
-		"application/json",
-		bytes.NewBuffer(jsonStr),
-	)
-
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
 	d := &MediaItems{}
-	err = json.NewDecoder(resp.Body).Decode(d)
+	err := m.postJson(
+		"https://photoslibrary.googleapis.com/v1/mediaItems:search",
+		searchRequest,
+		d,
+	)
 	if err != nil {
 		return nil, err
 	}
 	if d.Error != nil {
-		log.Fatal("got an error fetching media items: " + d.Error.Message + " " + d.Error.Status)
+		return nil, fmt.Errorf(
+			"got an error fetching media items: %s %s",
+			d.Error.Message,
+			d.Error.Status,
+		)
 	}
 
-	return d, err
+	return d, nil
 }
 
 func MediaItemsToLowercaseFilenameMap(mediaItems []*MediaItem) map[string][]*MediaItem {
