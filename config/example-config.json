@@ -10,12 +10,5 @@
     ],
     "auth-url": "https://accounts.google.com/o/oauth2/auth",
     "token-url": "https://oauth2.googleapis.com/token",
-    "redirect-url": "http://127.0.0.1:8080/oauth/callback",
-    "__needed_for_space_saver_cmd__": "",
-    "free-before-date": "2021-06-01",
-    "picture-path-substrings-to-ignore": [
-        ".*pictures from others you want to ignore.*"
-    ],
-    "root-pictures-dir": "/Users/username/Pictures/",
-    "__needed_for_deive_2_photos_cmd__": ""
+    "redirect-url": "http://127.0.0.1:8080/oauth/callback"
 }

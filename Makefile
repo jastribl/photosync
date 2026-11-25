@@ -4,8 +4,7 @@ build_all: \
 	cacheitems \
 	createalbum \
 	labelphotos \
-	sortlocal \
-	spacesaver
+	sortlocal
 
 clean:
 	find bin/ -type f -not -name .keep -delete
@@ -21,9 +20,6 @@ labelphotos:
 	go build -o bin/$@ cmd/$@/main.go
 
 sortlocal:
-	go build -o bin/$@ cmd/$@/main.go
-
-spacesaver:
 	go build -o bin/$@ cmd/$@/main.go
 
 check: build_all

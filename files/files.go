@@ -54,26 +54,6 @@ func GetAllLowercaseFilenamesInDir(
 	return lowercaseFilenames
 }
 
-func GetAllLowercaseFilenamesInDirAsMap(
-	rootDir string,
-	folderDenyRegexs, folderAllowRegexs []*regexp.Regexp,
-) map[string]int {
-	allDriveLowercaseFilenamesArr := GetAllLowercaseFilenamesInDir(
-		rootDir,
-		folderDenyRegexs,
-		folderAllowRegexs,
-	)
-	toReturn := map[string]int{}
-	for _, lowercaseFilename := range allDriveLowercaseFilenamesArr {
-		if _, hasKey := toReturn[lowercaseFilename]; hasKey {
-			toReturn[lowercaseFilename] = toReturn[lowercaseFilename] + 1
-		} else {
-			toReturn[lowercaseFilename] = 1
-		}
-	}
-	return toReturn
-}
-
 func StrMatchesAnyAndNotAny(s string, denyRegexs, allowRegexs []*regexp.Regexp) bool {
 	for _, denyRegex := range denyRegexs {
 		if denyRegex.MatchString(s) {

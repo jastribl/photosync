@@ -8,7 +8,6 @@ and `createalbum`. There is no database — local state is just
 
 ## Setup
 Requires Go 1.24. To get setup, just get the repo and run `cp config/example-config.json config/config.json` and fill in the new config as required for your accounts.
-Some possible entries for `picture-path-substrings-to-ignore` would be "from others", "from person a", etc. as these could be folders of photos already imported from other people.
 
 On first run, the tool opens a Google OAuth page in your browser and serves
 the callback on `localhost:8080`; the token is then cached in
@@ -16,15 +15,8 @@ the callback on `localhost:8080`; the token is then cached in
 
 ## Build
 ```
-make build_all   # builds all 8 tools into bin/
+make build_all   # builds all 4 remaining tools into bin/
 go vet ./...     # vet everything
-```
-
-
-## Running the space saver script
-Running this script will list our all the image urls that you might want to remove (that are taking your storage space)
-```
-go run cmd/spacesaver/main.go
 ```
 
 ## Common commands
@@ -33,5 +25,11 @@ go run cmd/spacesaver/main.go
 make check
 
 // Label recent pictures:
-go run cmd/labelphotos/main.go /Users/justinstribling/Desktop/To\ sort/ Seattle\ 2021 [--create]s
+go run cmd/labelphotos/main.go /Users/justinstribling/Desktop/To\ sort/ Seattle\ 2021 [--create]
+
+// Sort local pictures into date folders:
+go run cmd/sortlocal/main.go /Users/justinstribling/Desktop/To\ sort/
+
+// Create an album:
+go run cmd/createalbum/main.go "Album name"
 ```
