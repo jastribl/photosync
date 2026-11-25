@@ -37,10 +37,11 @@ never commit them.
   `GetAllMediaItemsForAlbum` (`mediaItems:search`). So always run
   `createalbum` first and work with that app-owned album for labelling and
   anything else that reads album contents. (Verified Nov 25, 2026 on a test
-  account: `mediaItems:search` on an app-owned album with the legacy
+  account: `mediaItems:search` on an app-owned album with only the legacy
   `photoslibrary` scope returns 403 "insufficient authentication scopes";
-  the `photoslibrary.readonly.appcreateddata` scope is being tested as the
-  replacement — see `config/example-config.json`.)
+  with `photoslibrary.readonly.appcreateddata` added to the scopes it returns
+  the album's items — that scope is now in `config/example-config.json`, and
+  any existing token needs a re-consent to pick it up.)
 - Several tools **mutate** Google Photos (albums, enrichments) or the local
   filesystem (sorting). Do not run them against the owner's real account or
   photo library without his explicit go-ahead for that run. Dry-run / read-only
