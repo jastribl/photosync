@@ -66,7 +66,7 @@ func TestRunAutoYesRenamesAndDedupes(t *testing.T) {
 	if summary.Renamed != 1 || summary.Skipped != 0 || summary.NoGPS != 0 {
 		t.Errorf("summary = %+v, want {Renamed:1 Skipped:0 NoGPS:0}", summary)
 	}
-	if _, err := os.Stat(filepath.Join(root, "2026-11-27 Stub Restaurant")); err != nil {
+	if _, err := os.Stat(filepath.Join(root, "2026-11-27 - Stub Restaurant")); err != nil {
 		t.Errorf("expected folder to be renamed, output:\n%s", out.String())
 	}
 	if _, err := os.Stat(filepath.Join(root, "2026-11-27")); !os.IsNotExist(err) {
@@ -89,8 +89,8 @@ func TestRunInteractivePickAndConfirm(t *testing.T) {
 	if summary.Renamed != 1 {
 		t.Errorf("summary = %+v, want Renamed 1; output:\n%s", summary, out.String())
 	}
-	if _, err := os.Stat(filepath.Join(root, "2026-11-27 Stub Cafe")); err != nil {
-		t.Errorf("expected folder '2026-11-27 Stub Cafe', output:\n%s", out.String())
+	if _, err := os.Stat(filepath.Join(root, "2026-11-27 - Stub Cafe")); err != nil {
+		t.Errorf("expected folder '2026-11-27 - Stub Cafe', output:\n%s", out.String())
 	}
 }
 
@@ -197,7 +197,7 @@ func TestRunAlreadyNamedFolderGetsNewDescription(t *testing.T) {
 	if summary.Renamed != 1 {
 		t.Errorf("summary = %+v, want Renamed 1", summary)
 	}
-	if _, err := os.Stat(filepath.Join(root, "2026-11-27 Stub Restaurant")); err != nil {
+	if _, err := os.Stat(filepath.Join(root, "2026-11-27 - Stub Restaurant")); err != nil {
 		t.Errorf("expected the description to be replaced, output:\n%s", out.String())
 	}
 }

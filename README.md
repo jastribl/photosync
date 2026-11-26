@@ -69,8 +69,12 @@ the previous one, `--time-gap`, or >100 m from the cluster center,
 `--distance-m`) — then makes one Google Places Nearby Search per
 cluster (`--radius-m` default 200 m, 5 results, nearest first). You pick
 from a numbered shortlist per cluster (or type a name, or 0 to skip),
-and the proposed name is `YYYY-MM-DD <picked names joined with ", ">`;
-it prompts once to confirm the rename. Photos with no GPS inherit the
+and the proposed name is `YYYY-MM-DD - <picked names joined with ", ">`
+— one pick per cluster, in chronological order; it prompts once to
+confirm the rename. The name is capped at 255 bytes (the macOS APFS
+limit for a folder name): trailing places are dropped until it fits,
+and a single over-long place is truncated at a UTF-8 rune boundary,
+so the rename can never fail on length. Photos with no GPS inherit the
 nearest photo in time in the same folder; a folder with no GPS at all
 is skipped.
 

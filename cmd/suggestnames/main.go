@@ -15,7 +15,12 @@
 // other in space and time are one stop — one restaurant, one sight),
 // and one Google Places Nearby Search is made per cluster. You pick
 // from a shortlist per cluster; the proposed name is
-// "YYYY-MM-DD <picked names joined with ', '>".
+// "YYYY-MM-DD - <picked names joined with ', '>".
+//
+// A proposed name is capped at 255 bytes (the macOS APFS limit for a
+// single path component): trailing places are dropped until it fits,
+// and a single over-long place is truncated at a UTF-8 rune boundary,
+// so the rename can never fail on length.
 //
 // The Places API needs an API key: pass --api-key, set
 // GOOGLE_PLACES_API_KEY, or put "places-api-key" in config/config.json
