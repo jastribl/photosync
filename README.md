@@ -95,7 +95,7 @@ coordinates returned real restaurants). The Places client forces
 HTTP/1.1 — Go's HTTP/2 hangs on this dev machine's egress proxy.
 
 HEIC note: GPS is read by the `imagemeta` library, which supports HEIC,
-with an `mdls` fallback on macOS for files it cannot parse. HEIC
-end-to-end was not verified on this Linux box (no HEIC sample here), so
-it's a laptop-test item — on a Mac the `mdls` fallback covers it either
-way.
+with an `mdls` fallback on macOS for files it cannot parse. Verified
+Nov 26, 2026 on real iPhone HEICs downloaded from a shared album: all
+71 HEICs yielded GPS + EXIF dates on this Linux box, so no `mdls`
+fallback is needed for them.
