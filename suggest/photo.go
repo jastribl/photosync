@@ -7,7 +7,9 @@
 // Places data comes from the Google Places API (New) Nearby Search —
 // one call per GPS cluster, never per photo, and never with image
 // recognition. See places.go for the API shape and cluster.go for how
-// photos are grouped into clusters before any call is made.
+// photos are grouped into clusters before any call is made. Clusters
+// are in time order (oldest first), so the picks — and the folder name
+// built from them — list the day's stops in the order they were visited.
 package suggest
 
 import (
