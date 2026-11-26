@@ -3,6 +3,8 @@
     "token-file-location": "config/token.json",
     "client-id": "example-client-id",
     "client-secret": "example-client-secret",
+    "__places_api_key_note__": "Google Places API (New) key for suggestnames, restricted to Places API (New) only",
+    "places-api-key": "",
     "scopes": [
         "https://www.googleapis.com/auth/photoslibrary",
         "https://www.googleapis.com/auth/photoslibrary.sharing",

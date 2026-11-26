@@ -10,7 +10,7 @@ never commit them.
 
 ## Build / check
 - Requires Go 1.24 (`go.mod`).
-- Build everything: `make build_all` — produces the 3 binaries in `bin/`.
+- Build everything: `make build_all` — produces the 4 binaries in `bin/`.
 - Vet everything: `go vet ./...`
 - `make clean` removes the binaries. `make check` just builds everything
   and vets it (it used to run the removed missing-file checks against
@@ -22,10 +22,16 @@ never commit them.
 | `labelphotos` | Main tool. Opens a Picker session, matches local top-level folders to an album by filename, and inserts text-enrichment labels. Dry-run unless `--create` is passed. The Picker is required: since the March 2025 Library API change the app can only list media items it created itself, so it cannot see phone-uploaded photos in the album (verified Nov 2026). Placements come from `labelling.BuildLabelPlan`, built up front before any write; a label whose anchor photo is not in the album falls back through the later folders' photos, oldest first, instead of aborting mid-run, and if no anchor works the label is left out and reported rather than placed at the front of the album. On `--create` runs, a failed anchor also proves that photo is not in the album, and a label whose folder's picked photos are all proven missing is skipped and reported instead of added (the first folder is never probed by an earlier label, and dry runs do not scan since they make no API calls). **Album ordering:** the plan assumes the album is sorted newest first (how Justin keeps his albums) — the newest folder's label goes at the front, and folder order is alphabetical by folder name, so it is chronological only for ISO-date folder names (e.g. `2026-11-20`). Anchor-relative labels stay attached to their photo if the album is re-sorted, but the front placement does not. Matching is by filename only, so two picked photos sharing a filename (e.g. from different days) can be attributed to the wrong folder — pick only the period being labelled to keep the window tight. Re-running `--create` after a partial run duplicates the labels that already landed (addEnrichment is not idempotent and the app cannot list existing labels for phone-uploaded photos), so check the album before re-running. |
 | `createalbum` | Main tool. Creates a Google Photos album with the given title. |
 | `sortlocal` | Sorts local photos into folders by date, using GPS timezone lookup. |
+| `suggestnames` | Proposes names for sortlocal's date folders from the places near where each day's photos were taken, and renames the folders with the confirmed picks. Per folder it reads each photo's GPS + taken time (via the shared `metadata` package), clusters photos that are near each other in space and time into stops (new cluster when a photo is >45 min after the previous one or >100 m from the cluster center; flags `--time-gap` / `--distance-m`), then makes one Google Places Nearby Search per cluster (raw REST, Pro field mask only — name/address/location/types, no rating/hours; `--radius-m` default 200 m, 5 results, ranked by distance). Per cluster it prints a numbered shortlist (name, type, distance, address) and prompts for a pick (number, 0 to skip, or a typed name); after all clusters it proposes "YYYY-MM-DD <picks joined with ', '>" and prompts to confirm the rename. `--dry-run` prints proposals without renaming (still calls Places unless `--stub`); `--yes` picks the nearest candidate per cluster and renames without prompting; `--stub` answers with canned places and no network. The Places key resolves flag `--api-key` → `GOOGLE_PLACES_API_KEY` → `"places-api-key"` in `config/config.json` (see `config/example-config.json`). Photos with no GPS inherit the nearest photo in time in the same folder; a folder with no GPS at all is skipped. A bare `y`/`n` at a cluster prompt is never accepted as a place name. **HTTP/1.1:** the Places client forces HTTP/1.1 — Go's HTTP/2 hangs on this dev machine's egress proxy (verified Nov 2026; the same call over HTTP/1.1 returns in under a second). |
 
 ## Conventions / cautions
 - Matching between local files and Photos is by **lowercase filename** — see
   `photos.MediaItemsToLowercaseFilenameMap` and `files/`.
+- `metadata/` holds the shared EXIF GPS + taken-time extraction (moved out
+  of `sortlocal` in Nov 2026 so `suggestnames` could reuse it). The primary
+  path is the `imagemeta` library, which also reads HEIC; on macOS there is
+  an `mdls` fallback for files it cannot read. On Linux there is no `mdls`,
+  so a file `imagemeta` cannot parse yields no GPS/time.
 - `labelphotos` and `sortlocal` open a browser (`open <picker-url>`) and wait
   for the user to pick photos; they are interactive and macOS-oriented.
 - OAuth is in `photos/client.go`: first run opens the auth URL and serves a
