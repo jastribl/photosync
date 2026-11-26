@@ -1,7 +1,7 @@
 // Package suggest proposes folder names for a day's photos from the
 // places near where they were taken. It is the naming step of the
 // labelling workflow: sortlocal sorts photos into YYYY-MM-DD folders,
-// suggestnames proposes "YYYY-MM-DD <places>" names for them, and
+// suggestnames proposes "YYYY-MM-DD - <places>" names for them, and
 // labelphotos then puts those folder names into albums as labels.
 //
 // Places data comes from the Google Places API (New) Nearby Search —

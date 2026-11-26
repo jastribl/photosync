@@ -7,7 +7,7 @@
 //	go run cmd/suggestnames/main.go [flags] <root dir>
 //
 // The root dir holds YYYY-MM-DD folders (as sortlocal produces them).
-// Folders already named "YYYY-MM-DD <description>" are handled the
+// Folders already named "YYYY-MM-DD - <description>" are handled the
 // same way: the date prefix is the day, and the description part is
 // replaced by the new picks.
 //
